@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
+import fishermanImage from '@/assets/images/map/fisherman.png'
 import fishIcon from '@/assets/icons/fishing/fish.svg'
-import pinIcon from '@/assets/icons/map/pin.svg'
 import wavesIcon from '@/assets/icons/map/waves.svg'
 import locationIcon from '@/assets/icons/map/location-arrow.svg'
 import plusIcon from '@/assets/icons/actions/plus.svg'
@@ -79,39 +79,44 @@ export function PlacesMap() {
   }
 
   return (
-    <section className="flex w-full min-w-0 max-w-176 flex-col gap-5" aria-labelledby="places-title">
+    <section className="flex w-full min-w-0 flex-col gap-5" aria-labelledby="places-title">
       <h1 id="places-title" className="m-0 text-3xl leading-tight font-extrabold sm:text-4xl">Карта мест</h1>
       <div className="flex flex-wrap items-center gap-3">
         <Select label="Все виды рыб" icon={fishIcon} options={[]} value="" onChange={() => {}} disabled />
       </div>
-      <div className="rounded-4xl bg-surface p-2.5">
-        <div className="relative isolate aspect-4/3 min-h-96 overflow-hidden rounded-3xl bg-map-water">
-          <div ref={containerRef} className="absolute inset-0" role="region" aria-label="Карта Владивостока и окрестностей" aria-busy={status === 'loading'} />
-          {status !== 'ready' && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 px-14 text-center" role="status">
-              <p className="m-0 max-w-64 text-sm text-text-muted">
-                {status === 'missing-key' ? 'Карта появится после подключения ключа Яндекс Карт.'
-                  : status === 'error' ? 'Не удалось загрузить карту. Проверьте подключение и попробуйте ещё раз.'
-                  : 'Загружаем карту…'}
-              </p>
-              {status === 'error' && <Button onClick={() => { setStatus('loading'); setAttempt((value) => value + 1) }}>Повторить</Button>}
+      <div className="flex flex-col gap-8 xl:flex-row">
+        <div className="w-full max-w-176 self-start rounded-4xl bg-surface p-2.5 xl:w-176">
+          <div className="relative isolate aspect-4/3 min-h-96 overflow-hidden rounded-3xl bg-map-water">
+            <div ref={containerRef} className="absolute inset-0" role="region" aria-label="Карта Владивостока и окрестностей" aria-busy={status === 'loading'} />
+            {status !== 'ready' && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 px-14 text-center" role="status">
+                <p className="m-0 max-w-64 text-sm text-text-muted">
+                  {status === 'missing-key' ? 'Карта появится после подключения ключа Яндекс Карт.'
+                    : status === 'error' ? 'Не удалось загрузить карту. Проверьте подключение и попробуйте ещё раз.'
+                    : 'Загружаем карту…'}
+                </p>
+                {status === 'error' && <Button onClick={() => { setStatus('loading'); setAttempt((value) => value + 1) }}>Повторить</Button>}
+              </div>
+            )}
+            <button type="button" disabled title="Слой глубин появится позже" className="absolute top-3 left-3 inline-flex min-h-9 items-center gap-2 rounded-pill border border-navigation-divider bg-surface px-3 py-2 text-xs text-text">
+              <img className="size-4" src={wavesIcon} alt="" />
+              Слой глубин
+            </button>
+            <div className="absolute top-1/2 right-4 flex -translate-y-1/2 flex-col items-center gap-4">
+              <div className="flex flex-col rounded-pill bg-surface p-1" role="group" aria-label="Масштаб карты">
+                <IconButton icon={plusIcon} label="Приблизить" iconClassName="size-5 brightness-0 opacity-50 group-hover:opacity-100 group-focus-visible:opacity-100" className="group bg-surface" disabled={status !== 'ready'} onClick={() => changeZoom(1)} />
+                <IconButton icon={minusIcon} label="Отдалить" iconClassName="size-5 brightness-0 opacity-50 group-hover:opacity-100 group-focus-visible:opacity-100" className="group bg-surface" disabled={status !== 'ready'} onClick={() => changeZoom(-1)} />
+              </div>
+              <IconButton icon={locationIcon} label={locating ? 'Определяем местоположение' : 'Моё местоположение'} iconClassName="size-4.5 brightness-0 opacity-50 group-hover:opacity-100 group-focus-visible:opacity-100" className="group min-h-11 min-w-11 bg-surface" disabled={status !== 'ready' || locating} onClick={locate} />
             </div>
-          )}
-          <button type="button" disabled title="Слой глубин появится позже" className="absolute top-3 left-3 inline-flex min-h-9 items-center gap-2 rounded-pill border border-navigation-divider bg-surface px-3 py-2 text-xs text-text">
-            <img className="size-4" src={wavesIcon} alt="" />
-            Слой глубин
-          </button>
-          <div className="absolute top-1/2 right-4 flex -translate-y-1/2 flex-col items-center gap-4">
-            <div className="flex flex-col rounded-pill bg-surface p-1" role="group" aria-label="Масштаб карты">
-              <IconButton icon={plusIcon} label="Приблизить" iconClassName="size-5 brightness-0 opacity-50 group-hover:opacity-100 group-focus-visible:opacity-100" className="group bg-surface" disabled={status !== 'ready'} onClick={() => changeZoom(1)} />
-              <IconButton icon={minusIcon} label="Отдалить" iconClassName="size-5 brightness-0 opacity-50 group-hover:opacity-100 group-focus-visible:opacity-100" className="group bg-surface" disabled={status !== 'ready'} onClick={() => changeZoom(-1)} />
-            </div>
-            <IconButton icon={locationIcon} label={locating ? 'Определяем местоположение' : 'Моё местоположение'} iconClassName="size-4.5 brightness-0 opacity-50 group-hover:opacity-100 group-focus-visible:opacity-100" className="group min-h-11 min-w-11 bg-surface" disabled={status !== 'ready' || locating} onClick={locate} />
           </div>
+          {locationError && (
+            <p className="m-0 px-2 py-3 text-xs leading-5 text-text-muted" role="status">{locationError}</p>
+          )}
         </div>
-        <div className="flex items-start gap-2 px-2 py-3 text-xs leading-5 text-text-muted" role="status">
-          <img className="mt-0.5 size-4 shrink-0" src={pinIcon} alt="" />
-          <p className="m-0">{locationError || 'Места для рыбалки появятся на карте позже.'}</p>
+        <div className="flex min-w-0 flex-1 flex-col items-center justify-center gap-6 px-6 py-8 text-center xl:min-w-64">
+          <img src={fishermanImage} alt="" className="h-100 w-112 max-w-full object-contain" />
+          <p className="m-0 max-w-72 text-lg leading-7 font-semibold text-text-muted">Выберите место для рыбалки</p>
         </div>
       </div>
     </section>
