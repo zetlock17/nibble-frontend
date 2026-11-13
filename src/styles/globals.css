@@ -8,6 +8,11 @@
     font-synthesis: none;
     text-rendering: optimizeLegibility;
     color-scheme: light;
+    scrollbar-width: none;
+  }
+
+  html::-webkit-scrollbar {
+    display: none;
   }
 
   body {

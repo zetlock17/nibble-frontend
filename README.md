@@ -39,7 +39,7 @@ src/
     fonts.css        Подключение шрифтов
 ```
 
-Импорты из `src` используют алиас `@/`, например `@/components/ui/button/Button`. Папки функций карты и справочника пока содержат `.gitkeep`; внутренние модули добавляются по мере разработки.
+Импорты из `src` используют алиас `@/`, например `@/components/ui/button/Button`. Внутренние модули добавляются по мере разработки.
 
 Иллюстративное фото улова взято с [Unsplash](https://images.unsplash.com/photo-1506873589908-63bc22175dd7). Оно хранится локально и используется только в демонстрационных записях.
 
@@ -57,6 +57,22 @@ npm ci
 npm run dev
 ```
 
+## Яндекс Карты
+
+Раздел «Карта мест» открывается из бокового меню. Карта использует JavaScript API v3, начальный центр — Владивосток. Кнопки меняют масштаб и перемещают карту к геопозиции после разрешения браузера. Фильтр и слой глубин пока представлены вёрсткой. Метки и карточка места будут добавлены позже.
+
+Создайте `.env.local` в корне проекта по образцу [.env.example](.env.example) и вставьте браузерный ключ.
+
+```dotenv
+VITE_YANDEX_MAPS_API_KEY=ваш_ключ
+```
+
+После изменения ключа перезапустите `npm run dev`. В PowerShell с запретом запуска `.ps1` используйте `npm.cmd run dev`.
+
+В кабинете Яндекса заполните ограничение по HTTP Referer для локального адреса разработки и домена сайта. Ключ `VITE_*` доступен в браузере. `.env.local` исключён из Git. Требования к ключу описаны в [документации Яндекса](https://yandex.ru/maps-api/docs/js-api/common/quickstart.html).
+
+Без ключа показывается пустое поле с подсказкой. При ошибке загрузки доступна повторная попытка.
+
 ## Проверки и сборка
 
 ```sh
@@ -64,6 +80,7 @@ npm run lint
 npm run build
 node --experimental-strip-types --test src/features/weather/weather.test.mjs
 node --experimental-strip-types --test src/features/feed/feed.test.mjs
+node --experimental-strip-types --test src/features/map/yandex-maps.test.mjs
 npm run preview
 ```
 

@@ -3,6 +3,7 @@
   /* Подписи дней чуть меньше text-xs — стандартная шкала начинается с 0.75rem. */
   --text-2xs: 0.6875rem;
   --color-page: #edf8ff;
+  --color-map-water: #cceefc;
   --color-surface: #ffffff;
   --color-search: #f3f7fa;
   --color-text: #171717;

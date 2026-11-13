@@ -18,7 +18,11 @@ const navigationItems = [
   { id: 'tackle', label: 'Снасти и удочки', icon: rodIcon },
 ]
 
-export function Sidebar() {
+type SidebarProps = {
+  onSectionChange?: (section: 'home' | 'places') => void
+}
+
+export function Sidebar({ onSectionChange }: SidebarProps) {
   const [selectedId, setSelectedId] = useState('home')
 
   return (
@@ -32,7 +36,10 @@ export function Sidebar() {
                 icon={icon}
                 iconClassName={id === 'profile' || id === 'tackle' ? 'size-5.5' : 'size-6'}
                 selected={selectedId === id}
-                onClick={() => setSelectedId(id)}
+                onClick={() => {
+                  setSelectedId(id)
+                  if (id === 'home' || id === 'places') onSectionChange?.(id)
+                }}
               >
                 {label}
               </NavigationButton>
