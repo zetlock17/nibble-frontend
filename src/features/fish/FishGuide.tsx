@@ -31,7 +31,7 @@ export function FishGuide({ fish }: { fish: readonly Fish[] }) {
   }
 
   return (
-    <section className="flex min-w-0 flex-col gap-4 sm:h-full sm:min-h-0 sm:overflow-y-auto sm:overscroll-none" aria-labelledby="fish-guide-title">
+    <section data-page-scroll className="flex min-w-0 flex-col gap-4 sm:h-full sm:min-h-0 sm:overflow-y-auto sm:overscroll-none" aria-labelledby="fish-guide-title">
       <h1 id="fish-guide-title" className="m-0 shrink-0 text-3xl leading-tight font-extrabold lg:text-4xl">Справочник рыб</h1>
       <div className="sticky top-0 z-10 flex shrink-0 flex-col gap-3 bg-page pt-2">
         <div className="flex flex-wrap items-center gap-3">

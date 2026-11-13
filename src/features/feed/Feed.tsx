@@ -28,7 +28,7 @@ export function Feed({ state, referenceTime }: FeedProps) {
         onChange={setFilters}
         onReset={resetFilters}
       />
-      <div className="flex flex-col gap-6 sm:min-h-0 sm:flex-1 sm:overflow-y-auto sm:overscroll-none sm:[&>*]:shrink-0" aria-busy={state.status === 'loading'}>
+      <div data-page-scroll className="flex flex-col gap-6 sm:min-h-0 sm:flex-1 sm:overflow-y-auto sm:overscroll-none sm:[&>*]:shrink-0" aria-busy={state.status === 'loading'}>
         {state.status === 'ready' ? (
           filteredPosts.length > 0 ? filteredPosts.map((post) => (
             <PostCard
