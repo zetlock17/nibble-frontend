@@ -1,0 +1,32 @@
+@import 'tailwindcss';
+@import './tokens.css';
+@import './fonts.css';
+
+@layer base {
+  html {
+    @apply bg-page font-sans text-text antialiased;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    color-scheme: light;
+  }
+
+  body {
+    @apply m-0 min-w-80;
+  }
+
+  button, a, input {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  button {
+    @apply cursor-pointer;
+  }
+
+  :focus-visible {
+    @apply outline-2 outline-offset-4 outline-focus;
+  }
+
+  ::selection {
+    @apply bg-selection text-text;
+  }
+}

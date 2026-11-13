@@ -1,0 +1,16 @@
+@theme {
+  --font-sans: 'Manrope', sans-serif;
+  --color-page: #edf8ff;
+  --color-surface: #ffffff;
+  --color-search: #f3f7fa;
+  --color-text: #171717;
+  --color-text-muted: #5e7382;
+  --color-icon-muted: #bfbfbf;
+  --color-divider: #d5d5d5;
+  --color-primary: #6793ff;
+  --color-primary-hover: #5885f0;
+  --color-avatar: #161a1d;
+  --color-focus: #2c59a5;
+  --color-selection: #d7e8ff;
+  --radius-pill: 999rem;
+}
