@@ -32,6 +32,7 @@ src/
     feed/            Демонстрационные публикации
     weather/         Демонстрационный прогноз
     header/          Демонстрационные данные хедера
+    fish/            Рыбы, описания и периоды ловли из макета
   pages/home/        Главная страница
   styles/
     globals.css      Подключение Tailwind и базовые стили
@@ -44,6 +45,8 @@ src/
 Иллюстративное фото улова взято с [Unsplash](https://images.unsplash.com/photo-1506873589908-63bc22175dd7). Оно хранится локально и используется только в демонстрационных записях.
 
 ## Документация
+
+Раздел «Справочник рыб» открывается из бокового меню. Поиск по названию и фильтр сезона работают вместе на шести моках. Фотографии иллюстративные, описания и периоды взяты из макета и требуют проверки перед использованием как справочных сведений. Источники фотографий перечислены в [src/assets/images/fish/SOURCES.md](src/assets/images/fish/SOURCES.md).
 
 - [Концепция](docs/CONCEPT.md): что делаем, пользовательские сценарии, предлагаемая первая версия, связи данных и открытые решения.
 - [Правила для агента](AGENTS.md): обязательные навыки, подход к коду, дизайну, текстам и проверкам. Читать в начале каждой сессии.
@@ -81,6 +84,7 @@ npm run build
 node --experimental-strip-types --test src/features/weather/weather.test.mjs
 node --experimental-strip-types --test src/features/feed/feed.test.mjs
 node --experimental-strip-types --test src/features/map/yandex-maps.test.mjs
+node --experimental-strip-types --test src/features/fish/fish.test.mjs
 npm run preview
 ```
 

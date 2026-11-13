@@ -31,6 +31,10 @@
     @apply outline-2 outline-offset-4 outline-focus;
   }
 
+  :focus:not(:focus-visible) {
+    outline: none;
+  }
+
   ::selection {
     @apply bg-selection text-text;
   }

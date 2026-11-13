@@ -2,7 +2,6 @@ import { useState } from 'react'
 import homeIcon from '@/assets/icons/navigation/home.svg'
 import userIcon from '@/assets/icons/navigation/user.svg'
 import pinIcon from '@/assets/icons/map/pin.svg'
-import wavesIcon from '@/assets/icons/map/waves.svg'
 import fishIcon from '@/assets/icons/fishing/fish.svg'
 import rodIcon from '@/assets/icons/fishing/rod.svg'
 import { NavigationButton } from '@/components/ui/button/NavigationButton'
@@ -12,14 +11,13 @@ import { weatherMock } from '@/mocks/weather/forecast'
 const navigationItems = [
   { id: 'home', label: 'Главная', icon: homeIcon },
   { id: 'places', label: 'Карта мест', icon: pinIcon },
-  { id: 'fish', label: 'Бестиарий', icon: fishIcon },
-  { id: 'depths', label: 'Карта глубин', icon: wavesIcon },
+  { id: 'fish', label: 'Справочник рыб', icon: fishIcon },
   { id: 'profile', label: 'Профиль', icon: userIcon },
   { id: 'tackle', label: 'Снасти и удочки', icon: rodIcon },
 ]
 
 type SidebarProps = {
-  onSectionChange?: (section: 'home' | 'places') => void
+  onSectionChange?: (section: 'home' | 'places' | 'fish') => void
 }
 
 export function Sidebar({ onSectionChange }: SidebarProps) {
@@ -38,7 +36,7 @@ export function Sidebar({ onSectionChange }: SidebarProps) {
                 selected={selectedId === id}
                 onClick={() => {
                   setSelectedId(id)
-                  if (id === 'home' || id === 'places') onSectionChange?.(id)
+                  if (id === 'home' || id === 'places' || id === 'fish') onSectionChange?.(id)
                 }}
               >
                 {label}

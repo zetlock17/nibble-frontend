@@ -24,7 +24,7 @@ export function SegmentedControl<T extends string>({ label, options, value, onCh
             checked={value === option.value}
             onChange={() => onChange(option.value)}
           />
-          <span className="flex min-h-9 w-full items-center justify-center rounded-pill px-3 text-sm leading-5 font-extrabold whitespace-nowrap text-text-muted peer-checked:bg-surface peer-checked:text-text peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-focus hover:text-text">
+          <span className="flex min-h-9 w-full items-center justify-center rounded-pill px-3 text-sm leading-5 font-medium whitespace-nowrap text-text-muted peer-checked:bg-surface peer-checked:font-extrabold peer-checked:text-text peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-focus hover:text-text">
             {option.label}
           </span>
         </label>
