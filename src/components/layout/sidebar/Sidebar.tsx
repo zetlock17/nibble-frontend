@@ -7,7 +7,7 @@ import fishIcon from '@/assets/icons/fishing/fish.svg'
 import rodIcon from '@/assets/icons/fishing/rod.svg'
 import { NavigationButton } from '@/components/ui/button/NavigationButton'
 import { WeatherCard } from '@/features/weather/WeatherCard'
-import { weatherMock } from '@/features/weather/mocks'
+import { weatherMock } from '@/mocks/weather/forecast'
 
 const navigationItems = [
   { id: 'home', label: 'Главная', icon: homeIcon },

@@ -1,5 +1,5 @@
 import { Header } from '@/components/layout/header/Header'
-import { headerMock } from '@/mocks/header'
+import { headerMock } from '@/mocks/header/header'
 import { HomePage } from '@/pages/home/HomePage'
 
 export default function App() {

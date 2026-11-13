@@ -1,12 +1,24 @@
-type AvatarProps = { initials: string }
+import { useState } from 'react'
 
-export function Avatar({ initials }: AvatarProps) {
+type AvatarProps = {
+  initials: string
+  src?: string
+  size?: 'sm' | 'md'
+  tone?: 'dark' | 'soft'
+}
+
+export function Avatar({ initials, src, size = 'sm', tone = 'dark' }: AvatarProps) {
+  const [failedSrc, setFailedSrc] = useState<string>()
+
   return (
     <span
-      className="inline-flex size-9 shrink-0 items-center justify-center rounded-pill bg-avatar text-xs leading-none font-extrabold text-surface"
+      className={`relative inline-flex shrink-0 items-center justify-center overflow-hidden rounded-pill leading-none font-extrabold ${size === 'md' ? 'size-11 text-sm' : 'size-9 text-xs'} ${tone === 'soft' ? 'bg-accent-soft text-focus' : 'bg-avatar text-surface'}`}
       aria-hidden="true"
     >
       {initials}
+      {src && src !== failedSrc && (
+        <img className="absolute inset-0 size-full object-cover" src={src} alt="" onError={() => setFailedSrc(src)} />
+      )}
     </span>
   )
 }
