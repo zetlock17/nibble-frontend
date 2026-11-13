@@ -14,9 +14,9 @@ type PostCardProps = {
   post: FeedPost
   referenceTime: string
   liked: boolean
-  following: boolean
+  following?: boolean
   onLike: () => void
-  onFollow: () => void
+  onFollow?: () => void
 }
 
 export function PostCard({ post, referenceTime, liked, following, onLike, onFollow }: PostCardProps) {
@@ -45,7 +45,7 @@ export function PostCard({ post, referenceTime, liked, following, onLike, onFoll
             ) : <span>{publishedLabel}</span>}
           </p>
         </div>
-        {post.source.type === 'community' && (
+        {post.source.type === 'community' && onFollow && (
           <Button
             variant="secondary"
             size="sm"

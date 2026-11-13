@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import homeIcon from '@/assets/icons/navigation/home.svg'
 import userIcon from '@/assets/icons/navigation/user.svg'
 import pinIcon from '@/assets/icons/map/pin.svg'
@@ -16,13 +15,14 @@ const navigationItems = [
   { id: 'tackle', label: 'Снасти и удочки', icon: rodIcon },
 ]
 
+export type Section = 'home' | 'places' | 'fish' | 'profile'
+
 type SidebarProps = {
-  onSectionChange?: (section: 'home' | 'places' | 'fish') => void
+  section: Section
+  onSectionChange: (section: Section) => void
 }
 
-export function Sidebar({ onSectionChange }: SidebarProps) {
-  const [selectedId, setSelectedId] = useState('home')
-
+export function Sidebar({ section, onSectionChange }: SidebarProps) {
   return (
     <aside className="flex w-full flex-col gap-5.5 sm:w-74 sm:shrink-0" aria-label="Погода и разделы">
       <WeatherCard state={weatherMock} />
@@ -33,10 +33,10 @@ export function Sidebar({ onSectionChange }: SidebarProps) {
               <NavigationButton
                 icon={icon}
                 iconClassName={id === 'profile' || id === 'tackle' ? 'size-5.5' : 'size-6'}
-                selected={selectedId === id}
+                selected={section === id}
+                disabled={id === 'tackle'}
                 onClick={() => {
-                  setSelectedId(id)
-                  if (id === 'home' || id === 'places' || id === 'fish') onSectionChange?.(id)
+                  if (id === 'home' || id === 'places' || id === 'fish' || id === 'profile') onSectionChange(id)
                 }}
               >
                 {label}

@@ -1,7 +1,7 @@
 import type { ButtonHTMLAttributes } from 'react'
 
 type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
-  variant?: 'primary' | 'secondary'
+  variant?: 'primary' | 'secondary' | 'dark'
   size?: 'sm' | 'md'
 }
 
@@ -14,7 +14,9 @@ export function Button({
 }: ButtonProps) {
   const colors = variant === 'secondary'
     ? 'bg-accent-soft font-extrabold text-focus hover:bg-selection active:bg-selection'
-    : 'bg-primary font-semibold text-surface hover:bg-primary-hover active:bg-focus'
+    : variant === 'dark'
+      ? 'bg-text font-semibold text-surface hover:bg-avatar active:bg-text-muted'
+      : 'bg-primary font-semibold text-surface hover:bg-primary-hover active:bg-focus'
   const dimensions = size === 'md' ? 'min-h-11 px-4' : 'min-h-9.5 px-3.5'
 
   return (

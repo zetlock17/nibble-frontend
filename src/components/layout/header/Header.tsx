@@ -9,9 +9,10 @@ import { SearchInput } from '@/components/ui/input/SearchInput'
 type HeaderProps = {
   city: string
   user: { name: string; initials: string }
+  onProfileClick: () => void
 }
 
-export function Header({ city, user }: HeaderProps) {
+export function Header({ city, user, onProfileClick }: HeaderProps) {
   return (
     <header className="flex min-h-16 items-center gap-5 rounded-pill bg-surface px-6 py-3 max-lg:gap-4 max-md:flex-wrap max-md:gap-3 max-md:rounded-3xl max-md:p-4 max-sm:gap-2 max-sm:px-3 max-sm:py-3.5">
       <a className="inline-flex shrink-0 items-center gap-2 no-underline" href="/" aria-label="Клёв, главная">
@@ -47,6 +48,7 @@ export function Header({ city, user }: HeaderProps) {
           className="inline-flex min-h-9.5 shrink-0 items-center gap-2.5 border-0 bg-transparent p-0 text-right"
           type="button"
           aria-label={`Мой профиль: ${user.name}`}
+          onClick={onProfileClick}
         >
           <span className="flex flex-col gap-0.5 max-lg:hidden">
             <span className="text-sm leading-4.5 font-extrabold">{user.name}</span>
