@@ -1,3 +1,4 @@
+import { FilterBar } from '@/components/ui/filter-bar/FilterBar'
 import { useState } from 'react'
 import { SearchInput } from '@/components/ui/input/SearchInput'
 import { Select } from '@/components/ui/select/Select'
@@ -19,8 +20,9 @@ export function TackleCatalog({ state }: { state: TackleState }) {
 
   return (
     <section data-page-scroll className="flex min-w-0 flex-col gap-4 sm:h-full sm:min-h-0 sm:overflow-y-auto sm:overscroll-none" aria-labelledby="tackle-title">
+      <div aria-hidden="true" className="hidden h-6 shrink-0 sm:block" />
       <h1 id="tackle-title" className="m-0 shrink-0 text-3xl leading-tight font-extrabold lg:text-4xl">Снасти и удочки</h1>
-      <div className="sticky top-0 z-10 flex shrink-0 flex-col gap-3 bg-page pt-2">
+      <FilterBar className="flex flex-col gap-3 pt-2">
         <div className="flex flex-wrap items-end gap-3">
           <SearchInput className="h-11 w-full lg:w-60 lg:flex-1" label="Название или продавец" placeholder="Название или продавец" value={filters.query} onChange={(event) => setFilters({ ...filters, query: event.target.value })} />
           <fieldset className="m-0 flex min-w-48 flex-1 gap-2 border-0 p-0 lg:max-w-64">
@@ -38,7 +40,7 @@ export function TackleCatalog({ state }: { state: TackleState }) {
         {invalidRange && <p id="tackle-price-error" className="m-0 text-sm text-text" role="alert">Цена «от» должна быть не больше цены «до».</p>}
         {hasFilters && <Button className="self-start" variant="secondary" onClick={() => setFilters(initialTackleFilters)}>Сбросить фильтры</Button>}
         {updated && <p className="m-0 text-xs text-text-muted">Данные обновлены: {updated}</p>}
-      </div>
+      </FilterBar>
       <div className="flex shrink-0 flex-col gap-4" aria-busy={state.status === 'loading'}>
         {state.status === 'ready' ? filtered.length > 0 && !invalidRange ? (
           <div className="grid grid-cols-1 items-stretch gap-4 lg:grid-cols-2 xl:grid-cols-5">

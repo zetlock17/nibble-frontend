@@ -1,3 +1,4 @@
+import { FilterBar } from '@/components/ui/filter-bar/FilterBar'
 import { useEffect, useRef, useState } from 'react'
 import fishermanImage from '@/assets/images/map/fisherman.png'
 import fishIcon from '@/assets/icons/fishing/fish.svg'
@@ -5,7 +6,6 @@ import wavesIcon from '@/assets/icons/map/waves.svg'
 import locationIcon from '@/assets/icons/map/location-arrow.svg'
 import plusIcon from '@/assets/icons/actions/plus.svg'
 import minusIcon from '@/assets/icons/actions/minus.svg'
-import pinIcon from '@/assets/icons/map/pin.svg'
 import rodIcon from '@/assets/icons/fishing/rod.svg'
 import trashIcon from '@/assets/icons/actions/trash.svg'
 import { Button } from '@/components/ui/button/Button'
@@ -18,7 +18,7 @@ import type { Place } from './place'
 import { PlaceCard } from './PlaceCard'
 import { PlaceDetails } from './PlaceDetails'
 import { revealPlace } from './reveal-place'
-import { filterPlaces, placeAreas, fishingLocations } from './filter-places'
+import { filterPlaces, fishingLocations } from './filter-places'
 
 const apiKey = import.meta.env.VITE_YANDEX_MAPS_API_KEY?.trim()
 
@@ -32,13 +32,11 @@ export function PlacesMap({ places, fish }: { places: readonly Place[]; fish: re
   const [attempt, setAttempt] = useState(0)
   const [locating, setLocating] = useState(false)
   const [locationError, setLocationError] = useState('')
-  const [area, setArea] = useState('')
   const [fishingFrom, setFishingFrom] = useState('')
-  const filteredPlaces = filterPlaces(places, area, fishingFrom)
-  const hasFilters = Boolean(area || fishingFrom)
+  const filteredPlaces = filterPlaces(places, fishingFrom)
+  const hasFilters = Boolean(fishingFrom)
 
   function resetFilters() {
-    setArea('')
     setFishingFrom('')
     setSelectedPlace(null)
   }
@@ -110,12 +108,11 @@ export function PlacesMap({ places, fish }: { places: readonly Place[]; fish: re
   return (
     <section ref={overviewRef} className="flex w-full min-w-0 flex-col gap-4" aria-labelledby="places-title">
       <h1 id="places-title" className="m-0 text-3xl leading-tight font-extrabold sm:text-4xl">Карта мест</h1>
-      <div className="sticky top-0 z-10 flex shrink-0 flex-wrap items-center gap-3 bg-page pt-2">
+      <FilterBar className="flex flex-wrap items-center gap-3 pt-2">
         <Select label="Все виды рыб" icon={fishIcon} options={[]} value="" onChange={() => {}} disabled />
-        <Select label="Район" icon={pinIcon} options={placeAreas} value={area} onChange={(value) => { setArea(value); setSelectedPlace(null) }} />
         <Select label="Откуда ловить" icon={rodIcon} options={fishingLocations} value={fishingFrom} onChange={(value) => { setFishingFrom(value); setSelectedPlace(null) }} />
         {hasFilters && <IconButton icon={trashIcon} label="Сбросить фильтры" iconClassName="size-4.5" className="size-11 bg-surface hover:bg-accent-soft" onClick={resetFilters} />}
-      </div>
+      </FilterBar>
       <div className="flex flex-col items-start gap-8 xl:flex-row">
         <div className="w-full max-w-176 self-start rounded-4xl bg-surface p-2.5 xl:w-176">
           <div className="relative isolate aspect-4/3 min-h-96 overflow-hidden rounded-3xl bg-map-water">
@@ -165,7 +162,7 @@ export function PlacesMap({ places, fish }: { places: readonly Place[]; fish: re
           </div>
         ) : (
           <div className="flex flex-col items-start gap-3 rounded-3xl bg-surface p-6" role="status">
-            <p className="m-0 text-sm text-text-muted">{hasFilters ? 'Подходящих мест нет. Измените район или откуда хотите ловить.' : 'Мест пока нет. Загляните позже.'}</p>
+            <p className="m-0 text-sm text-text-muted">{hasFilters ? 'Подходящих мест нет. Измените, откуда хотите ловить, или сбросьте фильтр.' : 'Мест пока нет. Загляните позже.'}</p>
             {hasFilters && <Button variant="secondary" onClick={resetFilters}>Сбросить фильтры</Button>}
           </div>
         )}

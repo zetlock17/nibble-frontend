@@ -1,3 +1,4 @@
+import { FilterBar } from '@/components/ui/filter-bar/FilterBar'
 import { useState } from 'react'
 import { SearchInput } from '@/components/ui/input/SearchInput'
 import { Select } from '@/components/ui/select/Select'
@@ -32,8 +33,9 @@ export function FishGuide({ fish }: { fish: readonly Fish[] }) {
 
   return (
     <section data-page-scroll className="flex min-w-0 flex-col gap-4 sm:h-full sm:min-h-0 sm:overflow-y-auto sm:overscroll-none" aria-labelledby="fish-guide-title">
+      <div aria-hidden="true" className="hidden h-6 shrink-0 sm:block" />
       <h1 id="fish-guide-title" className="m-0 shrink-0 text-3xl leading-tight font-extrabold lg:text-4xl">Справочник рыб</h1>
-      <div className="sticky top-0 z-10 flex shrink-0 flex-col gap-3 bg-page pt-2">
+      <FilterBar className="flex flex-col gap-3 pt-2">
         <div className="flex flex-wrap items-center gap-3">
           <SearchInput
             className="h-11 w-full xl:w-48 xl:flex-1"
@@ -53,7 +55,7 @@ export function FishGuide({ fish }: { fish: readonly Fish[] }) {
           <Select label="Где обитает" icon={wavesIcon} options={fishHabitats} value={habitat} onChange={setHabitat} />
           {hasFilters && <IconButton className="size-11 bg-surface hover:bg-accent-soft" icon={trashIcon} iconClassName="size-4.5" label="Сбросить фильтры" onClick={resetFilters} />}
         </div>
-      </div>
+      </FilterBar>
       <div className="flex shrink-0 flex-col gap-5">
         {filteredFish.length > 0 ? (
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
