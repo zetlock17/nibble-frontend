@@ -1,5 +1,7 @@
 @theme {
   --font-sans: 'Manrope', sans-serif;
+  /* Подписи дней чуть меньше text-xs — стандартная шкала начинается с 0.75rem. */
+  --text-2xs: 0.6875rem;
   --color-page: #edf8ff;
   --color-surface: #ffffff;
   --color-search: #f3f7fa;
@@ -12,5 +14,11 @@
   --color-avatar: #161a1d;
   --color-focus: #2c59a5;
   --color-selection: #d7e8ff;
+  --color-navigation-highlight: #eef6fd;
+  --color-navigation-hover: #f7fbfe;
+  --color-navigation-divider: #dce9f1;
+  --color-weather-start: #3996cf;
+  --color-weather: #58adef;
+  --color-weather-end: #83c9fa;
   --radius-pill: 999rem;
 }
