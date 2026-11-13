@@ -75,7 +75,8 @@ export function ProfilePage({ profile, state, referenceTime, photos }: ProfilePa
           </p>
         )}
       </section>
-      <aside className="@container order-first w-full min-w-0 rounded-4xl bg-surface p-4 sm:p-6 xl:order-last xl:w-auto xl:flex-1" aria-labelledby="profile-photos-heading">
+      {/* 100cqh — доступная высота области контента, независимо от высоты хедера. */}
+      <aside className="@container order-first w-full min-w-0 rounded-4xl bg-surface p-4 sm:p-6 xl:sticky xl:top-0 xl:order-last xl:max-h-[100cqh] xl:w-auto xl:flex-1 xl:overflow-y-auto xl:overscroll-none" aria-labelledby="profile-photos-heading">
         <h2 className="mt-0 mb-4 text-lg leading-6 font-extrabold" id="profile-photos-heading">Фото с рыбалок</h2>
         <PhotoGrid photos={photos} />
         <p className="mt-3 mb-0 text-xs leading-5 text-text-muted">Иллюстративные фото для примера</p>

@@ -20,7 +20,7 @@ export function Feed({ state, referenceTime }: FeedProps) {
   const hasFilters = filters.source !== 'all' || Boolean(filters.placeId) || Boolean(filters.fishId)
 
   return (
-    <section className="flex w-full min-w-0 max-w-188 flex-col gap-6" aria-label="Лента уловов">
+    <section className="flex w-full min-w-0 max-w-188 flex-col gap-6 sm:h-full sm:min-h-0" aria-label="Лента уловов">
       <FeedFilters
         value={filters}
         places={getFeedOptions(posts, 'place')}
@@ -28,7 +28,7 @@ export function Feed({ state, referenceTime }: FeedProps) {
         onChange={setFilters}
         onReset={resetFilters}
       />
-      <div className="flex flex-col gap-6" aria-busy={state.status === 'loading'}>
+      <div className="flex flex-col gap-6 sm:min-h-0 sm:flex-1 sm:overflow-y-auto sm:overscroll-none sm:[&>*]:shrink-0" aria-busy={state.status === 'loading'}>
         {state.status === 'ready' ? (
           filteredPosts.length > 0 ? filteredPosts.map((post) => (
             <PostCard

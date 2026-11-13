@@ -3,20 +3,27 @@
 @import './fonts.css';
 
 @layer base {
+  html, body, #root {
+    @apply h-full overflow-clip overscroll-none;
+  }
+
   html {
     @apply bg-page font-sans text-text antialiased;
     font-synthesis: none;
     text-rendering: optimizeLegibility;
     color-scheme: light;
+  }
+
+  * {
     scrollbar-width: none;
   }
 
-  html::-webkit-scrollbar {
+  *::-webkit-scrollbar {
     display: none;
   }
 
   body {
-    @apply m-0 min-w-80;
+    @apply fixed inset-0 m-0 min-w-80;
   }
 
   button, a, input {

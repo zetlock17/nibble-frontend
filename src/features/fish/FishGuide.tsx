@@ -19,9 +19,9 @@ export function FishGuide({ fish }: { fish: readonly Fish[] }) {
   const filteredFish = filterFish(fish, query, season)
 
   return (
-    <section className="flex min-w-0 flex-col gap-5" aria-labelledby="fish-guide-title">
-      <h1 id="fish-guide-title" className="m-0 text-3xl leading-tight font-extrabold lg:text-4xl">Справочник рыб</h1>
-      <div className="flex flex-wrap items-center gap-3">
+    <section className="flex min-w-0 flex-col gap-5 sm:h-full sm:min-h-0" aria-labelledby="fish-guide-title">
+      <h1 id="fish-guide-title" className="m-0 shrink-0 text-3xl leading-tight font-extrabold lg:text-4xl">Справочник рыб</h1>
+      <div className="flex shrink-0 flex-wrap items-center gap-3 bg-page py-2">
         <SearchInput
           className="h-11 w-full border border-navigation-divider bg-surface sm:w-60 lg:w-72"
           label="Найти рыбу"
@@ -37,6 +37,7 @@ export function FishGuide({ fish }: { fish: readonly Fish[] }) {
           onChange={setSeason}
         />
       </div>
+      <div className="flex flex-col gap-5 sm:min-h-0 sm:flex-1 sm:overflow-y-auto sm:overscroll-none sm:[&>*]:shrink-0">
       {filteredFish.length > 0 ? (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
           {filteredFish.map((item) => <FishCard key={item.id} fish={item} />)}
@@ -48,6 +49,7 @@ export function FishGuide({ fish }: { fish: readonly Fish[] }) {
         </div>
       )}
       <p className="m-0 text-xs leading-5 text-text-muted">Демонстрационные данные. Описания и периоды ловли взяты из макета, фотографии иллюстративные.</p>
+      </div>
     </section>
   )
 }

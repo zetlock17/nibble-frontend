@@ -24,7 +24,7 @@ type SidebarProps = {
 
 export function Sidebar({ section, onSectionChange }: SidebarProps) {
   return (
-    <aside className="flex w-full flex-col gap-5.5 sm:w-74 sm:shrink-0" aria-label="Погода и разделы">
+    <aside className="flex w-full shrink-0 flex-col gap-5.5 sm:max-h-full sm:w-74 sm:overflow-y-auto sm:overscroll-none sm:[&>*]:shrink-0" aria-label="Погода и разделы">
       <WeatherCard state={weatherMock} />
       <nav className="rounded-4xl bg-surface p-4" aria-label="Основная навигация">
         <ul className="m-0 flex list-none flex-col gap-2 p-0">

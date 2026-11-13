@@ -22,7 +22,7 @@ type FeedFiltersProps = {
 
 export function FeedFilters({ value, places, fish, onChange, onReset }: FeedFiltersProps) {
   return (
-    <div className="flex flex-wrap items-center gap-2.5" role="group" aria-label="Фильтры ленты">
+    <div className="flex shrink-0 flex-wrap items-center gap-2.5 bg-page py-2" role="group" aria-label="Фильтры ленты">
       <SegmentedControl
         className="max-sm:grow"
         label="Источник публикаций"

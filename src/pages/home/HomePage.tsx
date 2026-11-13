@@ -16,9 +16,10 @@ type HomePageProps = {
 
 export function HomePage({ section, onSectionChange }: HomePageProps) {
   return (
-    <main id="main-content" className="flex flex-col items-start gap-6 pt-6 sm:flex-row sm:gap-8 sm:pt-10" aria-label={section === 'profile' ? 'Мой профиль' : section === 'fish' ? 'Справочник рыб' : section === 'places' ? 'Карта мест' : 'Главная'}>
+    <main id="main-content" className="flex min-h-0 flex-1 flex-col items-start gap-6 overflow-y-auto overscroll-none pt-6 sm:flex-row sm:gap-8 sm:overflow-clip sm:pt-10" aria-label={section === 'profile' ? 'Мой профиль' : section === 'fish' ? 'Справочник рыб' : section === 'places' ? 'Карта мест' : 'Главная'}>
       <Sidebar section={section} onSectionChange={onSectionChange} />
-      <div className={`w-full min-w-0 max-sm:order-first ${section === 'fish' || section === 'profile' ? 'flex-1' : 'max-w-188'}`}>
+      {/* Размер контейнера нужен галерее, чтобы ограничить высоту доступной областью контента. */}
+      <div className={`w-full min-w-0 max-sm:order-first max-sm:shrink-0 sm:h-full sm:overscroll-none sm:[container-type:size] sm:[scrollbar-width:none] sm:[&::-webkit-scrollbar]:hidden ${section === 'profile' || section === 'places' ? 'sm:overflow-y-auto' : 'sm:overflow-clip'} ${section === 'fish' || section === 'profile' ? 'sm:flex-1' : 'max-w-188'}`}>
         {section === 'profile' ? <ProfilePage profile={profileMock} state={{ status: 'ready', posts: profilePostsMock }} referenceTime={feedMockReferenceTime} photos={profilePhotosMock} /> : section === 'fish' ? <FishGuide fish={fishMock} /> : section === 'places' ? <PlacesMap /> : <Feed state={feedMock} referenceTime={feedMockReferenceTime} />}
       </div>
     </main>
