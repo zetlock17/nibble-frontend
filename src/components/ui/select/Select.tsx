@@ -11,19 +11,20 @@ type SelectProps = {
   onChange: (value: string) => void
   className?: string
   disabled?: boolean
+  compact?: boolean
 }
 
-export function Select({ label, icon, options, value, onChange, className = '', disabled = false }: SelectProps) {
+export function Select({ label, icon, options, value, onChange, className = '', disabled = false, compact = false }: SelectProps) {
   const id = useId()
 
   return (
-    <div className={`relative min-w-0 ${className}`}>
+    <div className={`relative w-full min-w-0 shrink-0 ${compact ? 'sm:w-48' : 'sm:w-56'} ${className}`}>
       <label className="sr-only" htmlFor={id}>{label}</label>
       <img className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2" src={icon} alt="" />
       <select
         id={id}
         disabled={disabled}
-        className="h-11 w-full cursor-pointer appearance-none truncate rounded-pill border border-navigation-divider bg-surface pr-8 pl-9 text-sm leading-5 font-bold text-text"
+        className="h-11 w-full cursor-pointer appearance-none truncate rounded-pill border border-navigation-divider bg-surface pr-8 pl-10 text-sm leading-5 font-bold text-text focus-visible:outline-none"
         value={value}
         onChange={(event) => onChange(event.target.value)}
       >

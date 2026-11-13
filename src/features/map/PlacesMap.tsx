@@ -82,7 +82,7 @@ export function PlacesMap() {
     <section className="flex w-full min-w-0 max-w-176 flex-col gap-5" aria-labelledby="places-title">
       <h1 id="places-title" className="m-0 text-3xl leading-tight font-extrabold sm:text-4xl">Карта мест</h1>
       <div className="flex flex-wrap items-center gap-3">
-        <Select className="w-45" label="Все виды рыб" icon={fishIcon} options={[]} value="" onChange={() => {}} disabled />
+        <Select label="Все виды рыб" icon={fishIcon} options={[]} value="" onChange={() => {}} disabled />
       </div>
       <div className="rounded-4xl bg-surface p-2.5">
         <div className="relative isolate aspect-4/3 min-h-96 overflow-hidden rounded-3xl bg-map-water">

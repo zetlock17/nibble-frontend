@@ -22,16 +22,17 @@ type FeedFiltersProps = {
 
 export function FeedFilters({ value, places, fish, onChange, onReset }: FeedFiltersProps) {
   return (
-    <div className="flex shrink-0 flex-wrap items-center gap-2.5 bg-page py-2" role="group" aria-label="Фильтры ленты">
+    <div className="flex shrink-0 flex-wrap items-center gap-2 bg-page py-2" role="group" aria-label="Фильтры ленты">
       <SegmentedControl
-        className="max-sm:grow"
+        className="max-sm:grow sm:min-w-64 sm:flex-1 sm:[&>label]:flex-1"
         label="Источник публикаций"
         options={sourceOptions}
         value={value.source}
         onChange={(source) => onChange({ ...value, source })}
       />
       <Select
-        className="basis-36 grow max-sm:order-2 sm:basis-41 sm:grow-0"
+        compact
+        className="max-sm:order-2"
         label="Место ловли"
         icon={pinIcon}
         options={places}
@@ -39,7 +40,8 @@ export function FeedFilters({ value, places, fish, onChange, onReset }: FeedFilt
         onChange={(placeId) => onChange({ ...value, placeId })}
       />
       <Select
-        className="basis-36 grow max-sm:order-2 sm:basis-41 sm:grow-0"
+        compact
+        className="max-sm:order-2"
         label="Вид рыбы"
         icon={fishIcon}
         options={fish}

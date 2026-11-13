@@ -18,6 +18,20 @@ test('поиск учитывает регистр, пробелы и ё; сез
   assert.deepEqual(filterFish(fish, 'неизвестная рыба', 'all'), [])
 })
 
+test('способ и место обитания сочетаются с поиском и сезоном, неизвестные признаки не угадываются', () => {
+  const fish = [
+    { id: 'smelt', name: 'Корюшка', seasons: ['winter'], methods: ['ice', 'float'], habitats: ['sea', 'river'] },
+    { id: 'flounder', name: 'Камбала', seasons: ['summer'], methods: ['bottom'], habitats: ['sea'] },
+    { id: 'unknown', name: 'Рыба', seasons: ['winter'] },
+  ]
+  assert.deepEqual(filterFish(fish, ' КОРЮШКА ', 'winter', 'ice', 'river'), [fish[0]])
+  assert.deepEqual(filterFish(fish, '', 'all', 'float', 'sea'), [fish[0]])
+  assert.deepEqual(filterFish(fish, '', 'all', 'bottom', 'river'), [])
+  assert.deepEqual(filterFish(fish, '', 'summer', 'ice', ''), [])
+  assert.deepEqual(filterFish(fish, '', 'all', '', 'lake'), [])
+  assert.deepEqual(filterFish(fish, '', 'all'), fish)
+})
+
 test('справочник рендерит шесть карточек, фильтры и состояния без данных', async () => {
   const server = await createServer({ server: { middlewareMode: true, watch: null }, appType: 'custom' })
   try {
@@ -26,7 +40,8 @@ test('справочник рендерит шесть карточек, фил�
     const { fishMock } = await server.ssrLoadModule('/src/mocks/fish/fish.ts')
     const html = renderToStaticMarkup(createElement(FishGuide, { fish: fishMock }))
     assert.equal((html.match(/<article /g) ?? []).length, 6)
-    assert.equal((html.match(/type="radio"/g) ?? []).length, 5)
+    assert.doesNotMatch(html, /type="radio"/)
+    assert.equal((html.match(/<select/g) ?? []).length, 3)
     assert.match(html, /Справочник рыб/)
     assert.match(html, /type="search"/)
     assert.equal((html.match(/Период ловли:/g) ?? []).length, 6)

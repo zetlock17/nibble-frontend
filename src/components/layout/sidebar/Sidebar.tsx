@@ -15,7 +15,7 @@ const navigationItems = [
   { id: 'tackle', label: 'Снасти и удочки', icon: rodIcon },
 ]
 
-export type Section = 'home' | 'places' | 'fish' | 'profile'
+export type Section = 'home' | 'places' | 'fish' | 'profile' | 'tackle'
 
 type SidebarProps = {
   section: Section
@@ -29,14 +29,13 @@ export function Sidebar({ section, onSectionChange }: SidebarProps) {
       <nav className="rounded-4xl bg-surface p-4" aria-label="Основная навигация">
         <ul className="m-0 flex list-none flex-col gap-2 p-0">
           {navigationItems.map(({ id, label, icon }) => (
-            <li key={id} className={id === 'tackle' ? 'before:mx-4 before:mb-2 before:block before:border-t before:border-navigation-divider' : undefined}>
+            <li key={id} className={id === 'tackle' ? 'before:mx-4 before:mb-2 before:block before:border-t before:border-navigation-divider/50' : undefined}>
               <NavigationButton
                 icon={icon}
                 iconClassName={id === 'profile' || id === 'tackle' ? 'size-5.5' : 'size-6'}
                 selected={section === id}
-                disabled={id === 'tackle'}
                 onClick={() => {
-                  if (id === 'home' || id === 'places' || id === 'fish' || id === 'profile') onSectionChange(id)
+                  if (id === 'home' || id === 'places' || id === 'fish' || id === 'profile' || id === 'tackle') onSectionChange(id)
                 }}
               >
                 {label}
