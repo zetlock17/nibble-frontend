@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import { Button } from '@/components/ui/button/Button'
 import { FeedFilters } from './FeedFilters'
 import { PostCard } from './PostCard'
@@ -8,9 +8,10 @@ import type { FeedState } from './feed-model'
 type FeedProps = {
   state: FeedState
   referenceTime: string
+  resources?: ReactNode
 }
 
-export function Feed({ state, referenceTime }: FeedProps) {
+export function Feed({ state, referenceTime, resources }: FeedProps) {
   const [filters, setFilters] = useState(initialFeedFilters)
   const [likedPosts, setLikedPosts] = useState<string[]>([])
   const [followedAuthors, setFollowedAuthors] = useState<string[]>([])
@@ -20,7 +21,8 @@ export function Feed({ state, referenceTime }: FeedProps) {
   const hasFilters = filters.source !== 'all' || Boolean(filters.placeId) || Boolean(filters.fishId)
 
   return (
-    <section className="flex w-full min-w-0 max-w-188 flex-col gap-6 sm:h-full sm:min-h-0" aria-label="Лента уловов">
+    <section data-page-scroll className="flex w-full min-w-0 max-w-188 flex-col gap-2 sm:h-full sm:min-h-0 sm:overflow-y-auto sm:overscroll-none" aria-label="Лента уловов">
+      <div aria-hidden="true" className="hidden h-8 shrink-0 sm:block" />
       <FeedFilters
         value={filters}
         places={getFeedOptions(posts, 'place')}
@@ -28,7 +30,8 @@ export function Feed({ state, referenceTime }: FeedProps) {
         onChange={setFilters}
         onReset={resetFilters}
       />
-      <div className="flex flex-col gap-6 sm:min-h-0 sm:flex-1 sm:overflow-y-auto sm:overscroll-none sm:[&>*]:shrink-0" aria-busy={state.status === 'loading'}>
+      {resources && <div className="shrink-0 py-2 2xl:hidden">{resources}</div>}
+      <div className="flex shrink-0 flex-col gap-6" aria-busy={state.status === 'loading'}>
         {state.status === 'ready' ? (
           filteredPosts.length > 0 ? filteredPosts.map((post) => (
             <PostCard

@@ -3,10 +3,12 @@ import searchIcon from '@/assets/icons/actions/search.svg'
 
 type SearchInputProps = Omit<InputHTMLAttributes<HTMLInputElement>, 'type'> & {
   label: string
+  tone?: 'default' | 'header'
 }
 
 export function SearchInput({
   label,
+  tone = 'default',
   id,
   className = '',
   ...props
@@ -16,7 +18,7 @@ export function SearchInput({
 
   return (
     <search
-      className={`flex h-9.5 items-center gap-2 rounded-pill border-0 bg-search px-3.5 text-icon-muted outline-none ${className}`}
+      className={`flex h-9.5 items-center gap-2 rounded-pill px-3.5 text-icon-muted outline-none ${tone === 'header' ? 'border-0 bg-search' : 'border border-navigation-divider bg-surface'} ${className}`}
       aria-label={label}
     >
       <img className="block size-4.5 shrink-0" src={searchIcon} alt="" />

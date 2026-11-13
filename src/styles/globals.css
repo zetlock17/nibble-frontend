@@ -34,6 +34,15 @@
     @apply cursor-pointer;
   }
 
+  input[type='number'] {
+    appearance: textfield;
+  }
+
+  input[type='number']::-webkit-inner-spin-button,
+  input[type='number']::-webkit-outer-spin-button {
+    @apply m-0 appearance-none;
+  }
+
   :focus-visible {
     @apply outline-2 outline-offset-4 outline-focus;
   }

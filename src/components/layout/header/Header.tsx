@@ -32,6 +32,7 @@ export function Header({ city, user, onProfileClick }: HeaderProps) {
       </button>
 
       <SearchInput
+        tone="header"
         className="max-w-126 grow shrink basis-55 max-md:order-1 max-md:h-10.5 max-md:max-w-none max-md:basis-full"
         label="Найти место или рыбу"
         placeholder="Найти место или рыбу"

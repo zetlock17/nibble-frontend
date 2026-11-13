@@ -5,14 +5,21 @@ export type MapInstance = {
   zoom: number
   setLocation: (location: MapLocation) => void
   addChild: (layer: object) => void
+  removeChild: (layer: object) => void
   destroy: () => void
 }
 
-type MapsApi = {
+export type MapFeatureProps = {
+  geometry: { type: 'Polygon'; coordinates: [number, number][][] }
+  style: { fill: string; fillOpacity: number; stroke: { width: number }[]; zIndex: number; interactive: boolean }
+}
+
+export type MapsApi = {
   ready: Promise<void>
   YMap: new (container: HTMLElement, props: { location: MapLocation; zoomRange: { min: number; max: number } }) => MapInstance
   YMapDefaultSchemeLayer: new () => object
   YMapDefaultFeaturesLayer: new () => object
+  YMapFeature: new (props: MapFeatureProps) => object
 }
 
 declare global {
