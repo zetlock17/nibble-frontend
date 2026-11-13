@@ -37,7 +37,7 @@ export function WeatherCard({ state }: WeatherCardProps) {
     <section aria-label={`Погода, ${location.name}`}>
       <div className={cardClassName}>
         <div className="flex flex-wrap items-baseline justify-between gap-x-2 gap-y-1">
-          <h2 className="m-0 inline-flex min-w-0 items-center gap-1.5 text-sm leading-5 font-extrabold wrap-anywhere">
+          <h2 className="m-0 inline-flex min-w-0 items-center gap-1.5 text-sm leading-5 font-semibold wrap-anywhere">
             <span className="min-w-0">{location.name}</span>
             <img className="size-3 shrink-0 object-contain invert" src={locationArrow} alt="" />
           </h2>
