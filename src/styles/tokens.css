@@ -4,6 +4,12 @@
   --text-2xs: 0.6875rem;
   --color-page: #edf8ff;
   --color-map-water: #cceefc;
+  --color-depth-0: #c8ebff;
+  --color-depth-2: #96d2f5;
+  --color-depth-5: #64b4eb;
+  --color-depth-10: #3c8cd7;
+  --color-depth-20: #1e64be;
+  --color-depth-50: #0f3c96;
   --color-surface: #ffffff;
   --color-search: #f3f7fa;
   --color-text: #171717;
