@@ -5,21 +5,43 @@ import wavesIcon from '@/assets/icons/map/waves.svg'
 import locationIcon from '@/assets/icons/map/location-arrow.svg'
 import plusIcon from '@/assets/icons/actions/plus.svg'
 import minusIcon from '@/assets/icons/actions/minus.svg'
+import pinIcon from '@/assets/icons/map/pin.svg'
+import rodIcon from '@/assets/icons/fishing/rod.svg'
+import trashIcon from '@/assets/icons/actions/trash.svg'
 import { Button } from '@/components/ui/button/Button'
 import { IconButton } from '@/components/ui/button/IconButton'
 import { Select } from '@/components/ui/select/Select'
 import { loadYandexMaps } from './yandex-maps'
 import type { MapInstance } from './yandex-maps'
+import type { Fish } from '@/features/fish/fish'
+import type { Place } from './place'
+import { PlaceCard } from './PlaceCard'
+import { PlaceDetails } from './PlaceDetails'
+import { revealPlace } from './reveal-place'
+import { filterPlaces, placeAreas, fishingLocations } from './filter-places'
 
 const apiKey = import.meta.env.VITE_YANDEX_MAPS_API_KEY?.trim()
 
-export function PlacesMap() {
+export function PlacesMap({ places, fish }: { places: readonly Place[]; fish: readonly Fish[] }) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<MapInstance | null>(null)
+  const overviewRef = useRef<HTMLDivElement>(null)
+  const detailsRef = useRef<HTMLDivElement>(null)
+  const [selectedPlace, setSelectedPlace] = useState<Place | null>(null)
   const [status, setStatus] = useState<'loading' | 'missing-key' | 'ready' | 'error'>(apiKey ? 'loading' : 'missing-key')
   const [attempt, setAttempt] = useState(0)
   const [locating, setLocating] = useState(false)
   const [locationError, setLocationError] = useState('')
+  const [area, setArea] = useState('')
+  const [fishingFrom, setFishingFrom] = useState('')
+  const filteredPlaces = filterPlaces(places, area, fishingFrom)
+  const hasFilters = Boolean(area || fishingFrom)
+
+  function resetFilters() {
+    setArea('')
+    setFishingFrom('')
+    setSelectedPlace(null)
+  }
 
   useEffect(() => {
     if (!apiKey) return
@@ -57,6 +79,13 @@ export function PlacesMap() {
     if (map) map.setLocation({ zoom: Math.min(21, Math.max(2, map.zoom + delta)) })
   }
 
+  function selectPlace(place: Place) {
+    setSelectedPlace(place)
+    requestAnimationFrame(() => {
+      revealPlace(overviewRef.current, detailsRef.current, window.matchMedia('(prefers-reduced-motion: reduce)').matches)
+    })
+  }
+
   function locate() {
     setLocationError('')
     if (!navigator.geolocation) {
@@ -83,8 +112,11 @@ export function PlacesMap() {
       <h1 id="places-title" className="m-0 text-3xl leading-tight font-extrabold sm:text-4xl">Карта мест</h1>
       <div className="flex flex-wrap items-center gap-3">
         <Select label="Все виды рыб" icon={fishIcon} options={[]} value="" onChange={() => {}} disabled />
+        <Select label="Район" icon={pinIcon} options={placeAreas} value={area} onChange={(value) => { setArea(value); setSelectedPlace(null) }} />
+        <Select label="Откуда ловить" icon={rodIcon} options={fishingLocations} value={fishingFrom} onChange={(value) => { setFishingFrom(value); setSelectedPlace(null) }} />
+        {hasFilters && <IconButton icon={trashIcon} label="Сбросить фильтры" iconClassName="size-4.5" className="size-11 bg-surface hover:bg-accent-soft" onClick={resetFilters} />}
       </div>
-      <div className="flex flex-col gap-8 xl:flex-row">
+      <div ref={overviewRef} tabIndex={-1} className="flex scroll-mt-5 flex-col items-start gap-8 xl:flex-row">
         <div className="w-full max-w-176 self-start rounded-4xl bg-surface p-2.5 xl:w-176">
           <div className="relative isolate aspect-4/3 min-h-96 overflow-hidden rounded-3xl bg-map-water">
             <div ref={containerRef} className="absolute inset-0" role="region" aria-label="Карта Владивостока и окрестностей" aria-busy={status === 'loading'} />
@@ -114,11 +146,30 @@ export function PlacesMap() {
             <p className="m-0 px-2 py-3 text-xs leading-5 text-text-muted" role="status">{locationError}</p>
           )}
         </div>
-        <div className="flex min-w-0 flex-1 flex-col items-center justify-center gap-6 px-6 py-8 text-center xl:min-w-64">
-          <img src={fishermanImage} alt="" className="h-100 w-112 max-w-full object-contain" />
-          <p className="m-0 max-w-72 text-lg leading-7 font-semibold text-text-muted">Выберите место для рыбалки</p>
-        </div>
+        {selectedPlace ? (
+          <div ref={detailsRef} tabIndex={-1} aria-label={`Подробности места: ${selectedPlace.name}`} className="relative w-full min-w-0 flex-1 self-stretch xl:min-w-64">
+            <PlaceDetails key={selectedPlace.id} place={selectedPlace} fish={fish} />
+          </div>
+        ) : (
+          <div className="flex min-w-0 flex-1 flex-col items-center justify-center gap-6 self-stretch px-6 py-8 text-center xl:min-w-64">
+            <img src={fishermanImage} alt="" className="h-100 w-112 max-w-full object-contain" />
+            <p className="m-0 max-w-72 text-lg leading-7 font-semibold text-text-muted">Выберите место для рыбалки</p>
+          </div>
+        )}
       </div>
+      <section className="mt-3 flex flex-col gap-5 pb-6" aria-labelledby="places-list-title">
+        <h2 id="places-list-title" className="m-0 text-2xl leading-8 font-extrabold">Места для рыбалки</h2>
+        {filteredPlaces.length ? (
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+            {filteredPlaces.map((place) => <PlaceCard key={place.id} place={place} fish={fish} onSelect={selectPlace} />)}
+          </div>
+        ) : (
+          <div className="flex flex-col items-start gap-3 rounded-3xl bg-surface p-6" role="status">
+            <p className="m-0 text-sm text-text-muted">{hasFilters ? 'Подходящих мест нет. Измените район или откуда хотите ловить.' : 'Мест пока нет. Загляните позже.'}</p>
+            {hasFilters && <Button variant="secondary" onClick={resetFilters}>Сбросить фильтры</Button>}
+          </div>
+        )}
+      </section>
     </section>
   )
 }
