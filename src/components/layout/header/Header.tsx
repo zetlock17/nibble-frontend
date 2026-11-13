@@ -1,4 +1,4 @@
-import hookLogo from '@/assets/brand/hook.svg'
+import logo from '@/assets/brand/logo.svg'
 import curveLine from '@/assets/icons/decorative/curve-line.svg'
 import plusIcon from '@/assets/icons/actions/plus.svg'
 import chevronDown from '@/assets/icons/navigation/chevron-down.svg'
@@ -15,7 +15,7 @@ export function Header({ city, user }: HeaderProps) {
   return (
     <header className="flex min-h-16 items-center gap-5 rounded-pill bg-surface px-6 py-3 max-lg:gap-4 max-md:flex-wrap max-md:gap-3 max-md:rounded-3xl max-md:p-4 max-sm:gap-2 max-sm:px-3 max-sm:py-3.5">
       <a className="inline-flex shrink-0 items-center gap-2 no-underline" href="/" aria-label="Клёв, главная">
-        <img className="block size-4.6 shrink-0" src={hookLogo} alt="" />
+        <img className="block size-4.6 shrink-0" src={logo} alt="" />
         <span className="text-2xl leading-none font-extrabold tracking-tighter max-sm:text-2xl">клёв</span>
       </a>
 
