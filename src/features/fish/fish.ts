@@ -22,6 +22,7 @@ export type Fish = {
   description?: string
   image?: string
   period?: string
+  catchMonths?: readonly number[]
   seasons: Exclude<Season, 'all'>[]
   methods?: readonly FishingMethod[]
   habitats?: readonly FishHabitat[]
