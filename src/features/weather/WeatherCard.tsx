@@ -1,3 +1,4 @@
+import locationArrow from '@/assets/icons/map/location-arrow.svg'
 import { formatForecastDate, formatTemperature, weatherDescriptions, windDirections } from './weather'
 import type { WeatherCondition, WeatherState } from './weather'
 import { weatherIcons } from './weather-icons'
@@ -36,7 +37,10 @@ export function WeatherCard({ state }: WeatherCardProps) {
     <section aria-label={`Погода, ${location.name}`}>
       <div className={cardClassName}>
         <div className="flex flex-wrap items-baseline justify-between gap-x-2 gap-y-1">
-          <h2 className="m-0 min-w-0 text-sm leading-5 font-extrabold wrap-anywhere">{location.name}</h2>
+          <h2 className="m-0 inline-flex min-w-0 items-center gap-1.5 text-sm leading-5 font-extrabold wrap-anywhere">
+            <span className="min-w-0">{location.name}</span>
+            <img className="size-3 shrink-0 object-contain invert" src={locationArrow} alt="" />
+          </h2>
           <p className="m-0 text-xs leading-5">
             {wind?.speedMs != null && Number.isFinite(wind.speedMs)
               ? `Ветер ${wind.direction ? windDirections[wind.direction] + ' ' : ''}${wind.speedMs} м/с`
