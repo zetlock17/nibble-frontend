@@ -18,9 +18,9 @@ export function TackleCatalog({ state }: { state: TackleState }) {
   const updated = state.status === 'ready' ? formatTackleDate(state.updatedOn) : undefined
 
   return (
-    <section className="flex min-w-0 flex-col gap-5 sm:h-full sm:min-h-0 sm:overflow-y-auto sm:overscroll-none" aria-labelledby="tackle-title">
+    <section className="flex min-w-0 flex-col gap-4 sm:h-full sm:min-h-0 sm:overflow-y-auto sm:overscroll-none" aria-labelledby="tackle-title">
       <h1 id="tackle-title" className="m-0 shrink-0 text-3xl leading-tight font-extrabold lg:text-4xl">Снасти и удочки</h1>
-      <div className="sticky top-0 z-10 flex shrink-0 flex-col gap-3 bg-page pt-2 pb-4">
+      <div className="sticky top-0 z-10 flex shrink-0 flex-col gap-3 bg-page pt-2">
         <div className="flex flex-wrap items-end gap-3">
           <SearchInput className="h-11 w-full lg:w-60 lg:flex-1" label="Название или продавец" placeholder="Название или продавец" value={filters.query} onChange={(event) => setFilters({ ...filters, query: event.target.value })} />
           <fieldset className="m-0 flex min-w-48 flex-1 gap-2 border-0 p-0 lg:max-w-64">

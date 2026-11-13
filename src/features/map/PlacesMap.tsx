@@ -25,7 +25,7 @@ const apiKey = import.meta.env.VITE_YANDEX_MAPS_API_KEY?.trim()
 export function PlacesMap({ places, fish }: { places: readonly Place[]; fish: readonly Fish[] }) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<MapInstance | null>(null)
-  const overviewRef = useRef<HTMLDivElement>(null)
+  const overviewRef = useRef<HTMLElement>(null)
   const detailsRef = useRef<HTMLDivElement>(null)
   const [selectedPlace, setSelectedPlace] = useState<Place | null>(null)
   const [status, setStatus] = useState<'loading' | 'missing-key' | 'ready' | 'error'>(apiKey ? 'loading' : 'missing-key')
@@ -108,15 +108,15 @@ export function PlacesMap({ places, fish }: { places: readonly Place[]; fish: re
   }
 
   return (
-    <section className="flex w-full min-w-0 flex-col gap-5" aria-labelledby="places-title">
+    <section ref={overviewRef} className="flex w-full min-w-0 flex-col gap-4" aria-labelledby="places-title">
       <h1 id="places-title" className="m-0 text-3xl leading-tight font-extrabold sm:text-4xl">Карта мест</h1>
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="sticky top-0 z-10 flex shrink-0 flex-wrap items-center gap-3 bg-page pt-2">
         <Select label="Все виды рыб" icon={fishIcon} options={[]} value="" onChange={() => {}} disabled />
         <Select label="Район" icon={pinIcon} options={placeAreas} value={area} onChange={(value) => { setArea(value); setSelectedPlace(null) }} />
         <Select label="Откуда ловить" icon={rodIcon} options={fishingLocations} value={fishingFrom} onChange={(value) => { setFishingFrom(value); setSelectedPlace(null) }} />
         {hasFilters && <IconButton icon={trashIcon} label="Сбросить фильтры" iconClassName="size-4.5" className="size-11 bg-surface hover:bg-accent-soft" onClick={resetFilters} />}
       </div>
-      <div ref={overviewRef} tabIndex={-1} className="flex scroll-mt-5 flex-col items-start gap-8 xl:flex-row">
+      <div className="flex flex-col items-start gap-8 xl:flex-row">
         <div className="w-full max-w-176 self-start rounded-4xl bg-surface p-2.5 xl:w-176">
           <div className="relative isolate aspect-4/3 min-h-96 overflow-hidden rounded-3xl bg-map-water">
             <div ref={containerRef} className="absolute inset-0" role="region" aria-label="Карта Владивостока и окрестностей" aria-busy={status === 'loading'} />

@@ -20,7 +20,7 @@ export function Feed({ state, referenceTime }: FeedProps) {
   const hasFilters = filters.source !== 'all' || Boolean(filters.placeId) || Boolean(filters.fishId)
 
   return (
-    <section className="flex w-full min-w-0 max-w-188 flex-col gap-6 sm:h-full sm:min-h-0" aria-label="Лента уловов">
+    <section className="flex w-full min-w-0 max-w-188 flex-col gap-2 sm:h-full sm:min-h-0" aria-label="Лента уловов">
       <FeedFilters
         value={filters}
         places={getFeedOptions(posts, 'place')}
