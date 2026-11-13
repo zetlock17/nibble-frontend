@@ -3,6 +3,10 @@
 @import './fonts.css';
 
 @layer base {
+  html, body, #root {
+    @apply h-full overflow-clip overscroll-none;
+  }
+
   html {
     @apply bg-page font-sans text-text antialiased;
     font-synthesis: none;
@@ -10,8 +14,16 @@
     color-scheme: light;
   }
 
+  * {
+    scrollbar-width: none;
+  }
+
+  *::-webkit-scrollbar {
+    display: none;
+  }
+
   body {
-    @apply m-0 min-w-80;
+    @apply fixed inset-0 m-0 min-w-80;
   }
 
   button, a, input {
@@ -24,6 +36,10 @@
 
   :focus-visible {
     @apply outline-2 outline-offset-4 outline-focus;
+  }
+
+  :focus:not(:focus-visible) {
+    outline: none;
   }
 
   ::selection {

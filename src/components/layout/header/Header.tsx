@@ -1,4 +1,4 @@
-import hookLogo from '@/assets/brand/hook.svg'
+import logo from '@/assets/brand/logo.svg'
 import curveLine from '@/assets/icons/decorative/curve-line.svg'
 import plusIcon from '@/assets/icons/actions/plus.svg'
 import chevronDown from '@/assets/icons/navigation/chevron-down.svg'
@@ -9,13 +9,14 @@ import { SearchInput } from '@/components/ui/input/SearchInput'
 type HeaderProps = {
   city: string
   user: { name: string; initials: string }
+  onProfileClick: () => void
 }
 
-export function Header({ city, user }: HeaderProps) {
+export function Header({ city, user, onProfileClick }: HeaderProps) {
   return (
-    <header className="flex min-h-16 items-center gap-5 rounded-pill bg-surface px-6 py-3 max-lg:gap-4 max-md:flex-wrap max-md:gap-3 max-md:rounded-3xl max-md:p-4 max-sm:gap-2 max-sm:px-3 max-sm:py-3.5">
+    <header className="relative z-50 flex min-h-16 shrink-0 items-center gap-5 rounded-pill border border-navigation-divider bg-surface px-6 py-3 max-lg:gap-4 max-md:flex-wrap max-md:gap-3 max-md:rounded-3xl max-md:p-4 max-sm:gap-2 max-sm:px-3 max-sm:py-3.5">
       <a className="inline-flex shrink-0 items-center gap-2 no-underline" href="/" aria-label="Клёв, главная">
-        <img className="block size-4.6 shrink-0" src={hookLogo} alt="" />
+        <img className="block size-4.6 shrink-0" src={logo} alt="" />
         <span className="text-2xl leading-none font-extrabold tracking-tighter max-sm:text-2xl">клёв</span>
       </a>
 
@@ -47,6 +48,7 @@ export function Header({ city, user }: HeaderProps) {
           className="inline-flex min-h-9.5 shrink-0 items-center gap-2.5 border-0 bg-transparent p-0 text-right"
           type="button"
           aria-label={`Мой профиль: ${user.name}`}
+          onClick={onProfileClick}
         >
           <span className="flex flex-col gap-0.5 max-lg:hidden">
             <span className="text-sm leading-4.5 font-extrabold">{user.name}</span>

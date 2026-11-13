@@ -1,4 +1,4 @@
-import type { WeatherState } from './weather'
+import type { WeatherState } from '@/features/weather/weather'
 
 // Фиксированный пример по макету. Даты и показатели не являются реальным прогнозом.
 export const weatherMock: WeatherState = {
