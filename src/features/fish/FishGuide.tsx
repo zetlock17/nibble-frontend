@@ -21,13 +21,13 @@ const seasons: readonly { value: Exclude<Season, 'all'>; label: string }[] = [
   { value: 'winter', label: 'Зима' },
 ]
 
-export function FishGuide() {
+export function FishGuide({ initialSpeciesId }: { initialSpeciesId?: string }) {
   const [query, setQuery] = useState('')
   const [season, setSeason] = useState<Season>('all')
   const catalogue = useFish(query, season)
   const methods = useFishingMethods()
   const fish = catalogue.fish
-  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [selectedId, setSelectedId] = useState<string | null>(initialSpeciesId ?? null)
   const scrollRef = useRef<HTMLElement>(null)
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: 0 })
@@ -42,7 +42,9 @@ export function FishGuide() {
     const id = selectedId
     setSelectedId(null)
     requestAnimationFrame(() => {
-      Array.from(scrollRef.current?.querySelectorAll<HTMLButtonElement>('[data-fish-id]') ?? []).find((button) => button.dataset.fishId === id)?.focus()
+      const button = Array.from(scrollRef.current?.querySelectorAll<HTMLButtonElement>('[data-fish-id]') ?? []).find((item) => item.dataset.fishId === id)
+      const target = button ?? scrollRef.current?.querySelector<HTMLHeadingElement>('#fish-guide-title')
+      target?.focus({ preventScroll: true })
     })
   }
 
@@ -50,7 +52,7 @@ export function FishGuide() {
     <section ref={scrollRef} data-page-scroll className="flex min-w-0 flex-col gap-4 sm:h-full sm:min-h-0 sm:overflow-y-auto sm:overscroll-none" aria-label="Справочник рыб">
       <div aria-hidden="true" className="hidden h-6 shrink-0 sm:block" />
       {selectedId ? <FishDetailsLoader key={selectedId} id={selectedId} onBack={closeDetails} /> : <>
-      <h1 id="fish-guide-title" className="m-0 shrink-0 text-3xl leading-tight font-extrabold lg:text-4xl">Справочник рыб</h1>
+      <h1 id="fish-guide-title" tabIndex={-1} className="m-0 outline-none shrink-0 text-3xl leading-tight font-extrabold lg:text-4xl">Справочник рыб</h1>
       <FilterBar className="flex flex-col gap-3 pt-2">
         <div className="flex flex-wrap items-center gap-3">
           <SearchInput

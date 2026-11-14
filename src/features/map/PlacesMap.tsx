@@ -28,7 +28,7 @@ const apiBase = import.meta.env.VITE_API_BASE_URL?.trim() || '/api'
 const emptyPlaces: readonly Place[] = []
 type SpotsResult = { cityId: number; attempt: number } & ({ status: 'ready'; places: Place[] } | { status: 'error' })
 
-export function PlacesMap({ cityId, cityName, center }: { cityId: number; cityName: string; center: [number, number] }) {
+export function PlacesMap({ cityId, cityName, center, initialPlace }: { cityId: number; cityName: string; center: [number, number]; initialPlace?: Place }) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<MapInstance | null>(null)
   const apiRef = useRef<LeafletApi | null>(null)
@@ -37,7 +37,7 @@ export function PlacesMap({ cityId, cityName, center }: { cityId: number; cityNa
   const returnFocusRef = useRef<HTMLElement | null>(null)
   const scrollPositionsRef = useRef({ content: 0, main: 0 })
   const [openPlace, setOpenPlace] = useState<Place | null>(null)
-  const [selection, setSelection] = useState<{ cityId: number; place: Place } | null>(null)
+  const [selection, setSelection] = useState<{ cityId: number; place: Place } | null>(initialPlace ? { cityId, place: initialPlace } : null)
   const selectedPlace = selection?.cityId === cityId ? selection.place : null
   const [spotsResult, setSpotsResult] = useState<SpotsResult | null>(null)
   const [spotsAttempt, setSpotsAttempt] = useState(0)
@@ -58,6 +58,10 @@ export function PlacesMap({ cityId, cityName, center }: { cityId: number; cityNa
       revealPlace(overviewRef.current, detailsRef.current, window.matchMedia('(prefers-reduced-motion: reduce)').matches)
     })
   }, [cityId])
+
+  useEffect(() => {
+    if (initialPlace) detailsRef.current?.focus({ preventScroll: true })
+  }, [initialPlace])
 
   useEffect(() => {
     const map = mapRef.current
