@@ -35,11 +35,11 @@ export const windDirections = {
 export type WeatherForecast = {
   location: { name: string; timeZone: string }
   source: { label: string; isDemo: boolean }
-  updatedAt: string
-  current: WeatherReading & {
-    observedAt: string
-    wind: { direction: keyof typeof windDirections | null; speedMs: number | null } | null
-  }
+  updatedAt: string | null
+  current: (WeatherReading & {
+    observedAt?: string
+    wind: { direction: string | null; speedMs: number | null } | null
+  }) | null
   days: (WeatherReading & { date: string })[]
 }
 
@@ -48,6 +48,7 @@ export type WeatherState =
   | { status: 'loading' }
   | { status: 'empty' }
   | { status: 'error' }
+  | { status: 'not-found' }
 
 export function formatTemperature(value: number | null) {
   if (value === null || !Number.isFinite(value)) return '—'

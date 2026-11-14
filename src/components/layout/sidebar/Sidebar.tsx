@@ -4,8 +4,8 @@ import pinIcon from '@/assets/icons/map/pin.svg'
 import fishIcon from '@/assets/icons/fishing/fish.svg'
 import rodIcon from '@/assets/icons/fishing/rod.svg'
 import { NavigationButton } from '@/components/ui/button/NavigationButton'
-import { WeatherCard } from '@/features/weather/WeatherCard'
-import { weatherMock } from '@/mocks/weather/forecast'
+import { WeatherWidget } from '@/features/weather/WeatherWidget'
+import type { City } from '@/features/city/cities'
 
 const navigationItems = [
   { id: 'home', label: 'Главная', icon: homeIcon },
@@ -18,14 +18,15 @@ const navigationItems = [
 export type Section = 'home' | 'places' | 'fish' | 'profile' | 'tackle' | 'add-catch'
 
 type SidebarProps = {
+  city: City | null
   section: Section
   onSectionChange: (section: Section) => void
 }
 
-export function Sidebar({ section, onSectionChange }: SidebarProps) {
+export function Sidebar({ city, section, onSectionChange }: SidebarProps) {
   return (
     <aside className="flex w-full shrink-0 flex-col gap-5.5 sm:max-h-full sm:w-74 sm:overflow-y-auto sm:pt-10 sm:overscroll-none sm:[&>*]:shrink-0" aria-label="Погода и разделы">
-      <WeatherCard state={weatherMock} />
+      {city && <WeatherWidget key={city.id} cityId={city.id} timeZone={city.timeZone} />}
       <nav className="rounded-4xl bg-surface p-4" aria-label="Основная навигация">
         <ul className="m-0 flex list-none flex-col gap-2 p-0">
           {navigationItems.map(({ id, label, icon }) => (

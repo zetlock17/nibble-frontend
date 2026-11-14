@@ -1,4 +1,4 @@
-import type { MapInstance, MapsApi } from './yandex-maps.ts'
+import type { LeafletApi, MapInstance } from './leaflet-map.ts'
 
 type Position = [number, number]
 type DepthFeature = {
@@ -101,34 +101,37 @@ export function depthBands(data: Depths) {
   return [...bands.values()].sort((a, b) => a.from - b.from || (a.to ?? Infinity) - (b.to ?? Infinity))
 }
 
-export function createDepthLayer(map: MapInstance, api: MapsApi, data: Depths, colors: ReadonlyMap<string, string>) {
+export function createDepthLayer(map: MapInstance, api: LeafletApi, data: Depths, colors: ReadonlyMap<string, string>) {
   const polygons = data.features.flatMap((feature) => feature.geometry.coordinates.map((rings) => ({ rings, from: feature.properties.depth_from })))
-  const features: object[] = []
-  const attached = new Set<object>()
+  const layers: object[] = []
+  const attached = new Set<Parameters<MapInstance['removeLayer']>[0]>()
 
   return {
     async show(signal: AbortSignal) {
-      // Let loading feedback paint, then yield between batches of SDK objects.
+      // Let loading feedback paint, then yield between batches of map objects.
       for (let index = 0; index < polygons.length; index++) {
         if (index % 24 === 0) await new Promise<void>((resolve) => setTimeout(resolve, 0))
         signal.throwIfAborted()
         const { rings, from } = polygons[index]
-        const fill = colors.get(depthColor(from).token)
-        if (!fill) throw new Error('Depth palette is unavailable')
-        const feature = features[index] ??= new api.YMapFeature({
-          geometry: { type: 'Polygon', coordinates: rings },
-          style: { fill, fillOpacity: 0.55, stroke: [{ width: 0 }], zIndex: 100, interactive: false },
-        })
-        if (!attached.has(feature)) {
-          map.addChild(feature)
-          attached.add(feature)
+        const fillColor = colors.get(depthColor(from).token)
+        if (!fillColor) throw new Error('Depth palette is unavailable')
+        // GeoJSON хранит [долгота, широта], Leaflet принимает [широта, долгота].
+        const layer = (layers[index] ??= api.polygon(rings.map((ring) => ring.map(([lng, lat]) => [lat, lng] as [number, number])), {
+          fillColor,
+          fillOpacity: 0.55,
+          stroke: false,
+          interactive: false,
+        })) as Parameters<MapInstance['addLayer']>[0]
+        if (!attached.has(layer)) {
+          map.addLayer(layer)
+          attached.add(layer)
         }
       }
     },
     hide() {
-      for (const feature of attached) {
-        map.removeChild(feature)
-        attached.delete(feature)
+      for (const layer of attached) {
+        map.removeLayer(layer)
+        attached.delete(layer)
       }
     },
   }

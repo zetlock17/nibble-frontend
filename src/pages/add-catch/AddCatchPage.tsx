@@ -11,11 +11,12 @@ import { SegmentedControl } from '@/components/ui/segmented-control/SegmentedCon
 import { CatchSpotMap } from '@/features/catch/CatchSpotMap'
 import { photoError, validateCatch } from '@/features/catch/catch-form'
 import type { Fish } from '@/features/fish/fish'
-import type { Place } from '@/features/map/place'
+import { useSpots } from '@/features/map/use-spots'
+import type { City } from '@/features/city/cities'
 
-type Props = { fish: readonly Fish[]; places: readonly Place[]; origin: 'home' | 'profile'; onBack: () => void; active: boolean }
+type Props = { fish: readonly Fish[]; city: City | null; origin: 'home' | 'profile'; onBack: () => void; active: boolean }
 
-export function AddCatchPage({ fish, places, origin, onBack, active }: Props) {
+export function AddCatchPage({ fish, city, origin, onBack, active }: Props) {
   const id = useId()
   const headingRef = useRef<HTMLHeadingElement>(null)
   const fileRef = useRef<HTMLInputElement>(null)
@@ -29,6 +30,8 @@ export function AddCatchPage({ fish, places, origin, onBack, active }: Props) {
   const [placeMode, setPlaceMode] = useState<'list' | 'map'>('list')
   const [description, setDescription] = useState('')
   const [message, setMessage] = useState('')
+  const spots = useSpots(city?.id ?? 0, active && Boolean(city))
+  const places = spots.places
   const selectedPlace = places.find((place) => place.id === placeId)
   const selectPlace = useCallback((value: string) => { setPlaceId(value); setMessage('') }, [])
 
@@ -84,7 +87,14 @@ export function AddCatchPage({ fish, places, origin, onBack, active }: Props) {
                 <img src={plusIcon} alt="" className="size-4 shrink-0 rotate-45 brightness-0 opacity-60" />
               </button>}
             </div>
-            {placeMode === 'list' ? <SearchSelect label="Место ловли" placeholder="Выбрать место" icon={pinIcon} options={places.map((place) => ({ value: place.id, label: place.name, description: place.area }))} value={placeId ? [placeId] : []} onChange={(value) => selectPlace(value[0] ?? '')} /> : active && <CatchSpotMap places={places} selectedId={placeId} onSelect={selectPlace} />}
+            {spots.status === 'error' ? (
+              <div className="mb-4 flex flex-col items-start gap-3 rounded-3xl bg-accent-soft p-4" role="alert">
+                <p className="m-0 text-sm leading-5 text-text-muted">Не удалось загрузить места. Проверьте подключение и попробуйте ещё раз. Улов можно опубликовать и без места.</p>
+                <Button variant="secondary" onClick={spots.retry}>Повторить</Button>
+              </div>
+            ) : spots.status === 'loading' ? <p className="mt-0 mb-4 text-sm text-text-muted" role="status">Загружаем места…</p>
+              : !places.length && <p className="mt-0 mb-4 text-sm text-text-muted" role="status">Мест пока нет. Улов можно опубликовать без места.</p>}
+            {placeMode === 'list' ? <SearchSelect label="Место ловли" placeholder="Выбрать место" icon={pinIcon} options={places.map((place) => ({ value: place.id, label: place.name, description: place.area }))} value={placeId ? [placeId] : []} onChange={(value) => selectPlace(value[0] ?? '')} /> : active && <CatchSpotMap key={city?.id} center={city?.coordinates} places={places} selectedId={placeId} onSelect={selectPlace} />}
           </fieldset>
 
           <div className="flex min-h-0 flex-1 flex-col">
