@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import arrowIcon from '@/assets/icons/actions/arrow_up.svg'
 import calendarIcon from '@/assets/icons/decorative/calendar.svg'
+import pinIcon from '@/assets/icons/map/pin.svg'
+import { Button } from '@/components/ui/button/Button'
 import type { Fish } from './fish'
 
 const months = ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл', 'Авг', 'Сен', 'Окт', 'Ноя', 'Дек']
 
-export function FishDetails({ fish, onBack }: { fish: Fish; onBack: () => void }) {
+export function FishDetails({ fish, onBack, onShowOnMap }: { fish: Fish; onBack: () => void; onShowOnMap: () => void }) {
   const headingRef = useRef<HTMLHeadingElement>(null)
   const [failedImage, setFailedImage] = useState<string>()
   const details = fish.details
@@ -35,6 +37,9 @@ export function FishDetails({ fish, onBack }: { fish: Fish; onBack: () => void }
             <h1 ref={headingRef} tabIndex={-1} id="fish-details-title" className="m-0 text-3xl leading-tight font-extrabold outline-none sm:text-4xl">{fish.name}</h1>
             <p className="mt-2 mb-0 text-sm text-text-muted">{details?.latinName || 'Латинское название не указано'}</p>
             <p className="mt-5 mb-0 text-base leading-7">{fish.description || 'Краткое описание пока не добавлено.'}</p>
+            <Button size="md" className="mt-5 max-sm:w-full" onClick={onShowOnMap}>
+              <img className="size-5 brightness-0 invert" src={pinIcon} alt="" />Показать на карте
+            </Button>
           </div>
           <section className="rounded-3xl bg-surface p-5 sm:p-6" aria-labelledby="fish-season-title">
             <div className="flex flex-wrap items-center justify-between gap-3">
