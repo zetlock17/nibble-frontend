@@ -13,6 +13,11 @@ export async function adminSend(path: string, method: 'POST' | 'PATCH' | 'DELETE
   return response.status === 204 ? null : await response.json() as unknown
 }
 
+// Удаляет загруженный, но не сохранённый файл. Сбой не мешает работе формы.
+export async function deleteFile(key: string) {
+  try { await authFetch(`/files/${encodeURIComponent(key)}`, { method: 'DELETE' }) } catch { /* Файл можно удалить позже. */ }
+}
+
 export function adminError(error: unknown) {
   const status = typeof error === 'object' && error !== null && 'status' in error ? Number((error as { status: unknown }).status) : 0
   if (status === 403) return 'Нет прав на это действие.'

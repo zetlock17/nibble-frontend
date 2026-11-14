@@ -2,7 +2,7 @@ export type Values = Record<string, string | boolean | string[]>
 export type Item = { id: number } & Record<string, unknown>
 export type OptionSource = 'cities' | 'species' | 'methods' | 'categories'
 export type FieldKind = 'text' | 'textarea' | 'number' | 'decimal' | 'checkbox' | 'select' | 'multi' | 'months' | 'tags' | 'image'
-export type Field = { key: string; label: string; kind: FieldKind; required?: boolean; options?: OptionSource; hint?: string; maxLength?: number }
+export type Field = { previewKey?: string; key: string; label: string; kind: FieldKind; required?: boolean; options?: OptionSource; hint?: string; maxLength?: number }
 
 export type Resource = {
   id: string
@@ -52,7 +52,7 @@ export const resources: Resource[] = [
       { key: 'name', label: 'Название', kind: 'text', required: true, maxLength: 100 },
       { key: 'short_description', label: 'Краткое описание', kind: 'text', required: true, maxLength: 200 },
       { key: 'latin_name', label: 'Латинское название', kind: 'text', maxLength: 150 },
-      { key: 'image_key', label: 'Фото', kind: 'image', required: true },
+      { key: 'image_key', label: 'Фото', kind: 'image', required: true, previewKey: 'image_url' },
       { key: 'months', label: 'Месяцы клёва', kind: 'months' },
       { key: 'typical_length_cm', label: 'Обычная длина, см', kind: 'number' },
       { key: 'typical_weight_g', label: 'Обычный вес, г', kind: 'number' },
@@ -62,7 +62,7 @@ export const resources: Resource[] = [
     ],
     toForm: (item) => ({
       name: text(item.name), short_description: text(item.short_description), latin_name: text(item.latin_name),
-      image_key: '', months: list(item.months), typical_length_cm: number(item.typical_length_cm), typical_weight_g: number(item.typical_weight_g),
+      image_key: '', image_url: text(item.image_url), months: list(item.months), typical_length_cm: number(item.typical_length_cm), typical_weight_g: number(item.typical_weight_g),
       description: text(item.description), identification: text(item.identification), aliases: list(item.aliases),
     }),
     toBody: (values) => ({
@@ -94,7 +94,7 @@ export const resources: Resource[] = [
       { key: 'area', label: 'Район', kind: 'text', maxLength: 150 },
       { key: 'lat', label: 'Широта', kind: 'decimal', required: true, hint: 'От −90 до 90, дробная часть через точку.' },
       { key: 'lon', label: 'Долгота', kind: 'decimal', required: true, hint: 'От −180 до 180.' },
-      { key: 'photo_key', label: 'Фото', kind: 'image' },
+      { key: 'photo_key', label: 'Фото', kind: 'image', previewKey: 'photo_url' },
       { key: 'description', label: 'Описание', kind: 'textarea', maxLength: 5000 },
       { key: 'species_ids', label: 'Рыбы', kind: 'multi', options: 'species' },
       { key: 'method_ids', label: 'Способы ловли', kind: 'multi', options: 'methods' },
@@ -102,7 +102,7 @@ export const resources: Resource[] = [
       { key: 'is_active', label: 'Показывать на карте', kind: 'checkbox' },
     ],
     toForm: (item) => ({
-      name: text(item.name), city_id: number(item.city_id), area: text(item.area), lat: text(item.lat), lon: text(item.lon), photo_key: '',
+      name: text(item.name), city_id: number(item.city_id), area: text(item.area), lat: text(item.lat), lon: text(item.lon), photo_key: '', photo_url: text(item.photo_url),
       description: text(item.description),
       species_ids: Array.isArray(item.species) ? item.species.map((entry) => String((entry as { id: unknown }).id)) : [],
       method_ids: Array.isArray(item.methods) ? item.methods.map((entry) => String((entry as { id: unknown }).id)) : [],
