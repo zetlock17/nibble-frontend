@@ -5,7 +5,8 @@ import loginIcon from '@/assets/icons/actions/login.svg'
 import chevronDown from '@/assets/icons/navigation/chevron-down.svg'
 import { Avatar } from '@/components/ui/avatar/Avatar'
 import { Button } from '@/components/ui/button/Button'
-import { SearchInput } from '@/components/ui/input/SearchInput'
+import { HeaderSearch } from './HeaderSearch'
+import type { SearchTarget } from './search-api'
 import { Dropdown } from '@/components/ui/select/Dropdown'
 import type { City } from '@/features/city/cities'
 
@@ -18,9 +19,10 @@ type HeaderProps = {
   user: { name: string; initials: string } | null
   onProfileClick: () => void
   onAddCatch: () => void
+  onSearchNavigate: (target: SearchTarget) => void
 }
 
-export function Header({ city, cities, cityStatus, onCityChange, onRetryCities, user, onProfileClick, onAddCatch }: HeaderProps) {
+export function Header({ city, cities, cityStatus, onCityChange, onRetryCities, user, onProfileClick, onAddCatch, onSearchNavigate }: HeaderProps) {
   return (
     <header className="relative z-50 flex min-h-16 shrink-0 items-center gap-5 rounded-pill border border-navigation-divider bg-surface px-6 py-3 max-lg:gap-4 max-md:flex-wrap max-md:gap-3 max-md:rounded-3xl max-md:p-4 max-sm:gap-2 max-sm:px-3 max-sm:py-3.5">
       <a className="inline-flex shrink-0 items-center gap-2 no-underline" href="/" aria-label="Клёв, главная">
@@ -35,13 +37,7 @@ export function Header({ city, cities, cityStatus, onCityChange, onRetryCities, 
         <span>{city.name}</span><img className="block size-3 shrink-0" src={chevronDown} alt="" />
       </Dropdown> : <div className="text-sm" role="status">{cityStatus === 'loading' ? 'Загружаем города…' : cityStatus === 'empty' ? 'Список городов пуст.' : 'Не удалось загрузить города.'} {cityStatus !== 'loading' && <button type="button" className="rounded-sm border-0 bg-transparent p-0 text-focus underline focus-visible:outline-2 focus-visible:outline-focus" onClick={onRetryCities}>Повторить</button>}</div>}
 
-      <SearchInput
-        tone="header"
-        className="max-w-126 grow shrink basis-55 max-md:order-1 max-md:h-10.5 max-md:max-w-none max-md:basis-full"
-        label="Найти место или рыбу"
-        placeholder="Найти место или рыбу"
-        name="search"
-      />
+      <HeaderSearch cityId={city?.id ?? null} onNavigate={onSearchNavigate} />
 
       <div className={`ml-auto flex shrink-0 items-center ${user ? 'gap-8 max-md:gap-3 max-sm:gap-2' : 'gap-3 max-sm:gap-2'}`}>
         <Button className="max-md:w-9.5 max-md:px-0" aria-label="Добавить улов" onClick={onAddCatch}>

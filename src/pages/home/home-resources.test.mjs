@@ -12,7 +12,7 @@ test('shows one article with navigation and a seasonal block without the removed
     const { fishMock } = await server.ssrLoadModule('/src/mocks/fish/fish.ts')
     const { getSeasonalFish } = await server.ssrLoadModule('/src/features/fish/seasonal-fish.ts')
     assert.deepEqual(getSeasonalFish(fishMock, new Date('2026-11-14T00:00:00Z')).fish.map((item) => item.id), ['smelt', 'flounder', 'cod'])
-    const html = renderToStaticMarkup(createElement(HomeResources, { fish: [], onOpenGuide() {}, onOpenArticle() {} }))
+    const html = renderToStaticMarkup(createElement(HomeResources, { fish: { fish: [], status: 'ready', retry() {} }, onOpenGuide() {}, onOpenArticle() {} }))
     assert.equal((html.match(/<article /g) ?? []).length, 1)
     assert.match(html, /Узлы для рыбалки/)
     assert.doesNotMatch(html, /Какую рыбу поймал/)
@@ -23,9 +23,13 @@ test('shows one article with navigation and a seasonal block without the removed
     assert.match(html, /На этот месяц периодов ловли пока нет/)
     assert.match(html, /В справочник/)
     assert.match(html, /Источники/)
-    assert.match(html, /https:\/\/nauch-tr\.dalrybvtuz\.ru\/images\/Issues\/73\/73-05\.pdf/)
+    assert.doesNotMatch(html, /nauch-tr|Wikimedia|демонстрационного макета/)
     assert.ok(html.indexOf('>Источники</button>') < html.indexOf('В справочник'))
     assert.doesNotMatch(html, /Периоды из демо/)
+    for (const status of ['loading', 'error', 'ready']) {
+      const state = renderToStaticMarkup(createElement(HomeResources, { fish: { fish: [{ id: '1', name: 'Рыба', seasons: [] }], status, retry() {} }, onOpenGuide() {}, onOpenArticle() {} }))
+      assert.match(state, status === 'loading' ? /Загружаем рыб/ : status === 'error' ? /Не удалось загрузить рыб/ : /Сезон ловли для части рыб неизвестен/)
+    }
     const knots = renderToStaticMarkup(createElement(ArticlePage, { article: 'article-knots', onBack() {} }))
     const fish = renderToStaticMarkup(createElement(ArticlePage, { article: 'article-fish', onBack() {} }))
     assert.match(knots, /Улучшенный клинч/)
