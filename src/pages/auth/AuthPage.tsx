@@ -11,7 +11,8 @@ import { cities } from '@/mocks/auth/cities'
 export type AuthUser = { name: string; initials: string; city: string }
 type Props = { onBack: () => void; onSignIn: (user: AuthUser) => void }
 
-const fieldClass = 'min-h-12 w-full rounded-pill border border-divider bg-surface px-4 text-base font-normal text-text focus-visible:outline-none'
+const fieldClass = 'min-h-12 w-full rounded-pill border border-divider px-4 text-base font-normal text-text focus-visible:outline-none'
+const inputClass = `${fieldClass} bg-search/50`
 
 export function AuthPage({ onBack, onSignIn }: Props) {
   const [mode, setMode] = useState<'login' | 'register'>('login')
@@ -43,11 +44,11 @@ export function AuthPage({ onBack, onSignIn }: Props) {
             <h1 id="auth-title" className="m-0 text-3xl leading-tight font-extrabold tracking-tight sm:text-4xl">{registering ? 'Создать аккаунт' : 'Войти в Клёв'}</h1>
             <p className="mt-3 mb-7 text-sm leading-6 text-text-muted">{registering ? 'Расскажите немного о себе, чтобы создать профиль.' : 'Войдите, чтобы перейти к своему профилю.'}</p>
             <form className="flex flex-col gap-4" onSubmit={submit}>
-              <label className="flex flex-col gap-2 text-sm font-bold">Почта<input className={fieldClass} type="email" name="email" autoComplete="email" required /></label>
-              <label className="flex flex-col gap-2 text-sm font-bold">Пароль<span className="relative block"><input className={`${fieldClass} pr-14`} type={showPassword ? 'text' : 'password'} name="password" autoComplete={registering ? 'new-password' : 'current-password'} required /><button type="button" aria-label={showPassword ? 'Скрыть пароль' : 'Показать пароль'} className="absolute inset-y-0 right-2 flex w-11 items-center justify-center rounded-pill border-0 bg-transparent" onClick={() => setShowPassword(!showPassword)}><img className="size-6" src={showPassword ? eyeClosedIcon : eyeIcon} alt="" /></button></span></label>
+              <label className="flex flex-col gap-2 text-sm font-bold">Почта<input className={inputClass} type="email" name="email" autoComplete="email" required /></label>
+              <label className="flex flex-col gap-2 text-sm font-bold">Пароль<span className="relative block"><input className={`${inputClass} pr-14`} type={showPassword ? 'text' : 'password'} name="password" autoComplete={registering ? 'new-password' : 'current-password'} required /><button type="button" aria-label={showPassword ? 'Скрыть пароль' : 'Показать пароль'} className="absolute inset-y-0 right-2 flex w-11 items-center justify-center rounded-pill border-0 bg-transparent" onClick={() => setShowPassword(!showPassword)}><img className="size-6" src={showPassword ? eyeClosedIcon : eyeIcon} alt="" /></button></span></label>
               {registering && <>
-                <label className="flex flex-col gap-2 text-sm font-bold">Отображаемое имя<input className={fieldClass} name="name" autoComplete="nickname" value={name} onChange={(event) => setName(event.target.value)} required pattern=".*\S.*" title="Введите имя" maxLength={60} /></label>
-                <label className="flex flex-col gap-2 text-sm font-bold">Город<span className="relative block"><select className={`${fieldClass} cursor-pointer appearance-none pr-10`} name="city" value={city} onChange={(event) => setCity(event.target.value)} required><option value="">Выберите город</option>{cities.map((item) => <option key={item} value={item}>{item}</option>)}</select><img className="pointer-events-none absolute top-1/2 right-4 size-3.5 -translate-y-1/2" src={chevronDown} alt="" /></span></label>
+                <label className="flex flex-col gap-2 text-sm font-bold">Отображаемое имя<input className={inputClass} name="name" autoComplete="nickname" value={name} onChange={(event) => setName(event.target.value)} required pattern=".*\S.*" title="Введите имя" maxLength={60} /></label>
+                <label className="flex flex-col gap-2 text-sm font-bold">Город<span className="relative block"><select className={`${fieldClass} cursor-pointer appearance-none bg-surface pr-10`} name="city" value={city} onChange={(event) => setCity(event.target.value)} required><option value="">Выберите город</option>{cities.map((item) => <option key={item} value={item}>{item}</option>)}</select><img className="pointer-events-none absolute top-1/2 right-4 size-3.5 -translate-y-1/2" src={chevronDown} alt="" /></span></label>
               </>}
               <Button type="submit" variant="strong" size="md" className="mt-2 w-full">{registering ? 'Зарегистрироваться' : 'Войти'}</Button>
             </form>
