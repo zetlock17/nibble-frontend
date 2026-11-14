@@ -2,14 +2,16 @@ export type FeedEntity = { id: string; name: string }
 
 export type FeedPost = {
   id: string
-  author: FeedEntity & { initials: string; avatarUrl?: string }
+  author: FeedEntity & { initials: string; avatarUrl?: string; isFollowing?: boolean }
   publishedAt: string | null
   fishingDate?: string | null
   image?: { src: string; alt: string }
   fish?: FeedEntity
   place?: FeedEntity
   text: string
+  // Без лайка текущего пользователя: карточка сама добавляет его при liked.
   likesCount: number
+  likedByMe?: boolean
   commentsCount: number
   source: { type: 'community' } | { type: 'telegram'; url?: string }
 }

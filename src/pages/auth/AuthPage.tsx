@@ -8,7 +8,8 @@ import eyeClosedIcon from '@/assets/icons/actions/eye_closed.svg'
 import { Button } from '@/components/ui/button/Button'
 import { cities } from '@/mocks/auth/cities'
 
-export type AuthUser = { name: string; initials: string; city: string }
+// id появится после подключения входа через API.
+export type AuthUser = { id?: number; name: string; initials: string; city: string }
 type Props = { onBack: () => void; onSignIn: (user: AuthUser) => void }
 
 const fieldClass = 'min-h-12 w-full rounded-pill border border-divider px-4 text-base font-normal text-text focus-visible:outline-none'

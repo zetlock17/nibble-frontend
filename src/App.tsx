@@ -51,7 +51,7 @@ export default function App() {
     <div hidden={authOpen} className="h-full">
     <div className="flex h-svh flex-col overflow-clip px-2 py-5 max-sm:py-3 2xl:px-9 2xl:py-6">
       <Header city={city} cities={cities} cityStatus={!citiesResult ? 'loading' : 'error' in citiesResult ? 'error' : cities.length ? 'ready' : 'empty'} onCityChange={(id) => { setCityId(id); setSearchNavigation(null) }} onRetryCities={() => { setCitiesResult(null); setCityAttempt((value) => value + 1) }} user={user} onSearchNavigate={openSearchResult} onProfileClick={() => changeSection('profile')} onAddCatch={openCatch} />
-      <HomePage searchNavigation={searchNavigation} city={city} section={section} onSectionChange={changeSection} onAddCatch={openCatch} catchOrigin={catchOrigin} user={user} onSignOut={() => { setUser(null); setSection('home') }} />
+      <HomePage searchNavigation={searchNavigation} city={city} section={section} onSectionChange={changeSection} onAddCatch={openCatch} catchOrigin={catchOrigin} user={user} onSignOut={() => { setUser(null); setSection('home') }} onRequireAuth={() => setAuthOpen(true)} />
     </div>
     </div>
     </>
