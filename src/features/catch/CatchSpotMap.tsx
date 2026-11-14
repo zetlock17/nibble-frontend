@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button/Button'
 import { IconButton } from '@/components/ui/button/IconButton'
 import { createMap, flyTo, loadLeaflet, maxZoom, minZoom, toLatLng, type LeafletApi, type MapInstance } from '@/features/map/leaflet-map'
 import type { Place } from '@/features/map/place'
-import { spotCoordinates } from '@/mocks/catch/spot-coordinates'
 
 export function CatchSpotMap({ places, selectedId, onSelect }: { places: readonly Place[]; selectedId: string; onSelect: (id: string) => void }) {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -27,7 +26,7 @@ export function CatchSpotMap({ places, selectedId, onSelect }: { places: readonl
       mapRef.current = map
       const containers: { place: Place; element: HTMLDivElement }[] = []
       for (const place of places) {
-        const coordinates = spotCoordinates[place.id]
+        const coordinates = place.coordinates
         if (!coordinates) continue
         const element = document.createElement('div')
         // Нулевой размер иконки: SpotMarker привязывается к точке собственными классами translate.
@@ -55,10 +54,10 @@ export function CatchSpotMap({ places, selectedId, onSelect }: { places: readonl
 
   useEffect(() => {
     for (const [id, marker] of markersRef.current) marker.setZIndexOffset(id === selectedId ? 1000 : 0)
-    const coordinates = spotCoordinates[selectedId]
+    const coordinates = places.find((place) => place.id === selectedId)?.coordinates
     const map = mapRef.current
     if (status === 'ready' && map && coordinates) flyTo(map, coordinates, undefined, true)
-  }, [selectedId, status, markerContainers])
+  }, [places, selectedId, status, markerContainers])
 
   return (
     <div>
