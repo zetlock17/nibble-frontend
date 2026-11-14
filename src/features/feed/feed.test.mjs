@@ -3,29 +3,39 @@ import { test } from 'node:test'
 import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { createServer } from 'vite'
-import { filterPosts, formatPostDate, getFeedOptions, getTelegramPostUrl, initialFeedFilters } from './feed-model.ts'
+import { formatPostDate, getTelegramPostUrl, initialFeedFilters } from './feed-model.ts'
+import { feedQuery, parseFeedPage } from './feed-api.ts'
 
 // node --experimental-strip-types --test src/features/feed/feed.test.mjs
 const referenceTime = '2026-05-13T12:00:00+10:00'
-const posts = [
-  { id: 'local', source: { type: 'community' }, fish: { id: 'fish', name: 'Терпуг' }, place: { id: 'place', name: 'Бухта Новик' } },
-  { id: 'telegram', source: { type: 'telegram' }, fish: { id: 'fish', name: 'Терпуг' }, place: { id: 'other-place', name: 'Бухта Соболь' } },
-  { id: 'without-metadata', source: { type: 'community' } },
-]
-
-test('фильтры источника, места и рыбы сочетаются, сброс возвращает все записи', () => {
-  assert.deepEqual(filterPosts(posts, initialFeedFilters), posts)
-  assert.deepEqual(filterPosts(posts, { ...initialFeedFilters, source: 'community' }).map((post) => post.id), ['local', 'without-metadata'])
-  assert.deepEqual(filterPosts(posts, { source: 'telegram', fishId: 'fish', placeId: 'other-place' }).map((post) => post.id), ['telegram'])
-  assert.deepEqual(filterPosts(posts, { source: 'telegram', fishId: 'fish', placeId: 'place' }), [])
-  assert.deepEqual(filterPosts(posts, { ...initialFeedFilters, fishId: 'unknown' }), [])
-  assert.equal(posts.length, 3)
+const apiPost = (overrides = {}) => ({
+  id: 7, kind: 'fishing_report', text: ' Поймал корюшку ', published_at: '2026-05-12T09:10:00Z', fishing_date: null,
+  source: { id: 2, type: 'telegram', name: 'Канал', url: 'https://t.me/channel' }, author: null, spot: null, species: [], media: [],
+  likes_count: 0, comments_count: 0, tg_reactions_count: 5, tg_comments_count: null, original_url: 'https://t.me/channel/1', ...overrides,
 })
 
-test('варианты фильтров используют устойчивые ID, пропускают неизвестные данные и повторы', () => {
-  assert.deepEqual(getFeedOptions(posts, 'fish'), [{ value: 'fish', label: 'Терпуг' }])
-  assert.equal(getFeedOptions(posts, 'place').length, 2)
-  assert.deepEqual(getFeedOptions([], 'place'), [])
+test('запрос ленты содержит город, фильтры и курсор', () => {
+  assert.equal(feedQuery(1, initialFeedFilters), 'city_id=1&limit=20')
+  assert.equal(feedQuery(1, { source: 'community', placeId: '3', fishId: '4' }, 'abc=='), 'city_id=1&limit=20&source=klev&spot_id=3&species_id=4&cursor=abc%3D%3D')
+})
+
+test('публикация из API превращается в карточку ленты, неполные данные остаются пустыми', () => {
+  const page = parseFeedPage({ items: [
+    apiPost(),
+    apiPost({ id: 8, source: { id: 1, type: 'klev', name: 'Клёв', url: null }, author: { id: 9, display_name: 'Анна Соколова', avatar_url: null, is_following: false }, likes_count: 3, comments_count: 2,
+      spot: { id: 4, name: 'Бухта Новик' }, species: [{ id: 6, name: 'Камбала', quantity: 2, max_weight_g: null }], media: [{ type: 'video', url: 'https://x/v.mp4' }, { type: 'photo', url: 'https://x/p.jpg' }] }),
+    apiPost({ id: 9, source: { id: 3, type: 'vk', name: 'VK', url: null } }),
+  ], next_cursor: 'next' })
+  assert.equal(page.nextCursor, 'next')
+  assert.equal(page.posts.length, 2)
+  const [telegram, community] = page.posts
+  assert.deepEqual([telegram.author.name, telegram.author.id, telegram.likesCount, telegram.commentsCount, telegram.text, telegram.image], ['Канал', 'source-2', 5, 0, 'Поймал корюшку', undefined])
+  assert.deepEqual(telegram.source, { type: 'telegram', url: 'https://t.me/channel/1' })
+  assert.deepEqual([community.author.name, community.author.initials, community.likesCount, community.commentsCount, community.source.type], ['Анна Соколова', 'АС', 3, 2, 'community'])
+  assert.deepEqual([community.place, community.fish, community.image.src], [{ id: '4', name: 'Бухта Новик' }, { id: '6', name: 'Камбала' }, 'https://x/p.jpg'])
+  assert.equal(parseFeedPage({ items: [], next_cursor: null }).nextCursor, null)
+  assert.throws(() => parseFeedPage({ items: [{ id: 'x' }] }))
+  assert.throws(() => parseFeedPage([]))
 })
 
 test('дата публикации учитывает часовой пояс Владивостока и неизвестную дату', () => {
@@ -93,7 +103,7 @@ test('карточки и лента рендерятся через Vite с н�
     assert.match(noPhotoHtml, /Камбала/)
     assert.doesNotMatch(noPhotoHtml, /aspect-video/)
 
-    const renderFeed = (state) => renderToStaticMarkup(createElement(Feed, { state, referenceTime }))
+    const renderFeed = (state) => renderToStaticMarkup(createElement(Feed, { state, referenceTime, filters: initialFeedFilters, onFiltersChange() {}, places: [], fish: [] }))
     const feedHtml = renderFeed(feedMock)
     assert.equal((feedHtml.match(/<article /g) ?? []).length, 4)
     assert.match(feedHtml, /aria-label="Фильтры ленты"/)
@@ -117,7 +127,7 @@ test('карточки и лента рендерятся через Vite с н�
     assert.match(renderProfile({ status: 'loading' }), /aria-busy="true"/)
     assert.match(renderProfile({ status: 'error' }), /Не удалось загрузить публикации/)
     const appHtml = renderToStaticMarkup(createElement(App))
-    assert.equal((appHtml.match(/<article /g) ?? []).length, 4)
+    assert.equal((appHtml.match(/<article /g) ?? []).length, 0)
     assert.match(appHtml, /id="main-content"/)
     assert.doesNotMatch(appHtml, /Демонстрационные публикации/)
   } finally {
