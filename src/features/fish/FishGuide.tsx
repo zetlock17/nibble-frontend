@@ -21,7 +21,7 @@ const seasons: readonly { value: Exclude<Season, 'all'>; label: string }[] = [
   { value: 'winter', label: 'Зима' },
 ]
 
-export function FishGuide({ initialSpeciesId }: { initialSpeciesId?: string }) {
+export function FishGuide({ initialSpeciesId, onShowOnMap }: { initialSpeciesId?: string; onShowOnMap: (speciesId: string) => void }) {
   const [query, setQuery] = useState('')
   const [season, setSeason] = useState<Season>('all')
   const catalogue = useFish(query, season)
@@ -51,7 +51,7 @@ export function FishGuide({ initialSpeciesId }: { initialSpeciesId?: string }) {
   return (
     <section ref={scrollRef} data-page-scroll className="flex min-w-0 flex-col gap-4 sm:h-full sm:min-h-0 sm:overflow-y-auto sm:overscroll-none" aria-label="Справочник рыб">
       <div aria-hidden="true" className="hidden h-6 shrink-0 sm:block" />
-      {selectedId ? <FishDetailsLoader key={selectedId} id={selectedId} onBack={closeDetails} /> : <>
+      {selectedId ? <FishDetailsLoader key={selectedId} id={selectedId} onBack={closeDetails} onShowOnMap={onShowOnMap} /> : <>
       <h1 id="fish-guide-title" tabIndex={-1} className="m-0 outline-none shrink-0 text-3xl leading-tight font-extrabold lg:text-4xl">Справочник рыб</h1>
       <FilterBar className="flex flex-col gap-3 pt-2">
         <div className="flex flex-wrap items-center gap-3">
@@ -93,9 +93,9 @@ export function FishGuide({ initialSpeciesId }: { initialSpeciesId?: string }) {
   )
 }
 
-function FishDetailsLoader({ id, onBack }: { id: string; onBack: () => void }) {
+function FishDetailsLoader({ id, onBack, onShowOnMap }: { id: string; onBack: () => void; onShowOnMap: (speciesId: string) => void }) {
   const { result, retry } = useFishDetails(id)
-  if (result?.fish) return <FishDetails fish={result.fish} onBack={onBack} />
+  if (result?.fish) return <FishDetails fish={result.fish} onBack={onBack} onShowOnMap={() => onShowOnMap(id)} />
   return <div className="flex flex-col items-start gap-3">
     <Button variant="secondary" onClick={onBack}>Справочник рыб</Button>
     <FishLoadingState status={result?.error ? 'error' : 'loading'} onRetry={retry} />

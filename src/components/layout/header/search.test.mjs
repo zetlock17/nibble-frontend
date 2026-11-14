@@ -136,3 +136,18 @@ test('результаты разделены на места и виды, пе�
   assert.match(map, /aria-label="Подробности места: Бухта Аякс"/)
   assert.match(map, /Загружаем подробности места/)
 })
+
+test('логотип открывает главную внутри приложения без перезагрузки сессии', async () => {
+  const { Header } = await server.ssrLoadModule('/src/components/layout/header/Header.tsx')
+  let section = 'profile'
+  const header = Header({
+    city: null, cities: [], cityStatus: 'loading', user: { name: 'Рыбак', initials: 'Р' },
+    onHomeClick() { section = 'home' },
+  })
+  const homeButton = header.props.children.find((child) => child?.props?.['aria-label'] === 'Клёв, главная')
+  assert.equal(homeButton.type, 'button')
+  assert.equal(homeButton.props.type, 'button')
+  assert.equal(homeButton.props.href, undefined)
+  homeButton.props.onClick()
+  assert.equal(section, 'home')
+})

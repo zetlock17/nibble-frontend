@@ -30,7 +30,7 @@ const apiBase = import.meta.env.VITE_API_BASE_URL?.trim() || '/api'
 const emptyPlaces: readonly Place[] = []
 type SpotsResult = { cityId: number; attempt: number; filterKey: string } & ({ status: 'ready'; places: Place[] } | { status: 'error' })
 
-export function PlacesMap({ cityId, cityName, center, initialPlace }: { cityId: number; cityName: string; center: [number, number]; initialPlace?: Place }) {
+export function PlacesMap({ cityId, cityName, center, initialPlace, initialSpeciesId }: { cityId: number; cityName: string; center: [number, number]; initialPlace?: Place; initialSpeciesId?: string }) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<MapInstance | null>(null)
   const apiRef = useRef<LeafletApi | null>(null)
@@ -43,7 +43,7 @@ export function PlacesMap({ cityId, cityName, center, initialPlace }: { cityId: 
   const selectedPlace = selection?.cityId === cityId ? selection.place : null
   const [spotsResult, setSpotsResult] = useState<SpotsResult | null>(null)
   const [spotsAttempt, setSpotsAttempt] = useState(0)
-  const [filters, setFilters] = useState<SpotFilters>(noSpotFilters)
+  const [filters, setFilters] = useState<SpotFilters>({ ...noSpotFilters, speciesId: initialSpeciesId ?? '' })
   const filterKey = `${filters.speciesId}|${filters.methodId}`
   const hasFilters = Boolean(filters.speciesId || filters.methodId)
   const species = useFilterOptions('/species', apiBase)

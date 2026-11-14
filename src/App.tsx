@@ -48,7 +48,7 @@ export default function App() {
   const [catchOrigin, setCatchOrigin] = useState<'home' | 'profile'>('home')
   function openSearchResult(target: SearchTarget) {
     setSearchNavigation((current) => ({ target, revision: (current?.revision ?? 0) + 1 }))
-    setSection(target.kind === 'spot' ? 'places' : 'fish')
+    setSection(target.kind === 'spot' || target.kind === 'species-map' ? 'places' : 'fish')
   }
   function openCatch() {
     setSearchNavigation(null)
@@ -69,9 +69,9 @@ export default function App() {
     {adminOpen && user && <AdminPage user={user} onBack={() => setAdminOpen(false)} />}
     <div hidden={authOpen || (adminOpen && Boolean(user))} className="h-full">
     <div className="flex h-svh flex-col overflow-clip px-2 py-5 max-sm:py-3 2xl:px-9 2xl:py-6">
-      <Header city={city} cities={cities} cityStatus={cityStatus} onCityChange={(id) => { setCityId(id); setSearchNavigation(null) }} onRetryCities={retryCities} user={displayUser} onSearchNavigate={openSearchResult} onProfileClick={() => changeSection('profile')} onAdmin={user && user.role !== 'user' ? () => setAdminOpen(true) : undefined} onAddCatch={openCatch} />
+      <Header city={city} cities={cities} cityStatus={cityStatus} onCityChange={(id) => { setCityId(id); setSearchNavigation(null) }} onRetryCities={retryCities} user={displayUser} onSearchNavigate={openSearchResult} onHomeClick={() => changeSection('home')} onProfileClick={() => changeSection('profile')} onAdmin={user && user.role !== 'user' ? () => setAdminOpen(true) : undefined} onAddCatch={openCatch} />
       {auth.error && <div role="alert" className="mt-3 flex shrink-0 flex-wrap items-center gap-3 rounded-2xl bg-surface p-4 text-sm text-danger">{auth.error}{auth.status === 'error' && <button type="button" onClick={auth.retry} className="bg-transparent p-0 text-focus underline">Повторить</button>}</div>}
-      <HomePage searchNavigation={searchNavigation} city={city} section={visibleSection} onSectionChange={changeSection} onAddCatch={openCatch} catchOrigin={catchOrigin} user={displayUser} signingOut={auth.signingOut} onRequireAuth={() => { setAuthTarget(section); setAuthOpen(true) }} onSignOut={() => { void auth.logout().then((done) => { if (done) { setSection('home'); setAdminOpen(false) } }) }} />
+      <HomePage searchNavigation={searchNavigation} city={city} section={visibleSection} onSectionChange={changeSection} onOpenTarget={openSearchResult} onAddCatch={openCatch} catchOrigin={catchOrigin} user={displayUser} signingOut={auth.signingOut} onRequireAuth={() => { setAuthTarget(section); setAuthOpen(true) }} onSignOut={() => { void auth.logout().then((done) => { if (done) { setSection('home'); setAdminOpen(false) } }) }} />
     </div>
     </div>
     </>
