@@ -49,7 +49,7 @@ export function createAuthClient(apiBase: string) {
   async function request(path: string, init: RequestInit = {}) {
     const response = await fetch(`${base}${path}`, {
       ...init, credentials: 'include', cache: 'no-store', signal: AbortSignal.timeout(20000),
-      headers: { Accept: 'application/json', ...(init.body ? { 'Content-Type': 'application/json' } : {}), ...init.headers },
+      headers: { Accept: 'application/json', ...(init.body && !(init.body instanceof FormData) ? { 'Content-Type': 'application/json' } : {}), ...init.headers },
     })
     if (!response.ok) {
       let detail: unknown

@@ -10,14 +10,15 @@ test('photo accepts JPEG/PNG up to 10 MB and rejects empty or unsupported files'
   assert.ok(photoError({ type: 'image/svg+xml', size: 10 }))
 })
 
-test('catch allows multiple known species, hidden place and photo-only or text-only posts', () => {
+test('catch allows multiple known species, hidden place; photo and text are both required', () => {
   const fish = [{ id: 'cod' }, { id: 'smelt' }]
   const places = [{ id: 'novik' }]
-  const draft = { hasPhoto: false, description: 'Улов с берега', fishIds: ['cod', 'smelt'], placeId: 'novik' }
+  const draft = { hasPhoto: true, description: 'Улов с берега', fishIds: ['cod', 'smelt'], placeId: 'novik' }
   const check = (overrides = {}) => validateCatch({ ...draft, ...overrides }, fish, places)
   assert.equal(check(), '')
   assert.equal(check({ fishIds: [], placeId: '' }), '')
-  assert.equal(check({ description: '', hasPhoto: true }), '')
+  assert.ok(check({ description: '' }))
+  assert.ok(check({ hasPhoto: false }))
   assert.ok(check({ description: '  ' }))
   assert.ok(check({ fishIds: ['своя рыба'] }))
   assert.ok(check({ placeId: '131.9,43.1' }))

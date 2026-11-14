@@ -8,14 +8,26 @@ import { Button } from '@/components/ui/button/Button'
 import { PhotoGrid } from '@/components/ui/photo-grid/PhotoGrid'
 import type { GridPhoto } from '@/components/ui/photo-grid/PhotoGrid'
 import { PostCard } from '@/features/feed/PostCard'
-import type { FeedState } from '@/features/feed/feed-model'
-import type { profileMock } from '@/mocks/profile/profile'
+import type { FeedPost, FeedState } from '@/features/feed/feed-model'
+
+export type ProfileView = {
+  name: string
+  initials: string
+  city: string
+  bio: string
+  avatarUrl?: string
+  followersCount: number
+  postsCount?: number
+  cover: { src: string; alt: string }
+}
 
 type ProfilePageProps = {
-  profile: typeof profileMock & { avatarUrl?: string }
+  profile: ProfileView
   state: FeedState
   referenceTime: string
   photos: readonly GridPhoto[]
+  reactions: { isLiked: (post: FeedPost) => boolean; toggleLike: (post: FeedPost) => void; error: string }
+  onRetry?: () => void
   onAddCatch: () => void
   onSignOut: () => void
   signingOut: boolean
@@ -25,8 +37,7 @@ const postLabels = { one: 'пост', few: 'поста', many: 'постов', o
 const followerLabels = { one: 'подписчик', few: 'подписчика', many: 'подписчиков', other: 'подписчика' }
 const pluralRules = new Intl.PluralRules('ru')
 
-export function ProfilePage({ profile, state, referenceTime, photos, onAddCatch, onSignOut, signingOut }: ProfilePageProps) {
-  const [likedPosts, setLikedPosts] = useState<string[]>([])
+export function ProfilePage({ profile, state, referenceTime, photos, reactions, onRetry, onAddCatch, onSignOut, signingOut }: ProfilePageProps) {
   const [failedCover, setFailedCover] = useState<string>()
   const posts = state.status === 'ready' ? state.posts : []
 
@@ -60,7 +71,7 @@ export function ProfilePage({ profile, state, referenceTime, photos, onAddCatch,
           <p className="mt-3 mb-0 max-w-136 text-sm leading-relaxed sm:text-base">{profile.bio || 'Рыбак пока не рассказал о себе.'}</p>
           <dl className="mt-3 mb-0 flex flex-wrap gap-x-6 gap-y-2 text-sm text-text-muted">
             <div className="flex items-baseline gap-1">
-              <dd className="m-0 text-base font-extrabold text-text">{state.status === 'ready' ? posts.length : '—'}</dd>
+              <dd className="m-0 text-base font-extrabold text-text">{state.status === 'ready' ? profile.postsCount ?? posts.length : '—'}</dd>
               <dt>{postLabels[pluralRules.select(posts.length) as keyof typeof postLabels]}</dt>
             </div>
             <div className="flex items-baseline gap-1">
@@ -74,12 +85,15 @@ export function ProfilePage({ profile, state, referenceTime, photos, onAddCatch,
 
       <div className={`flex min-w-0 flex-col gap-6 xl:flex-row ${state.status === 'ready' && posts.length === 0 && photos.length === 0 ? 'xl:items-stretch' : 'xl:items-start'}`}>
       <section className="flex w-full min-w-0 max-w-188 flex-col gap-6 xl:w-3/5 xl:shrink-0" aria-label="Публикации профиля" aria-busy={state.status === 'loading'}>
+        {reactions.error && <p className="m-0 text-sm text-focus" role="alert">{reactions.error}</p>}
         {state.status === 'ready' && posts.length > 0 ? posts.map((post) => (
-          <PostCard key={post.id} post={post} referenceTime={referenceTime} liked={likedPosts.includes(post.id)} onLike={() => setLikedPosts((current) => current.includes(post.id) ? current.filter((id) => id !== post.id) : [...current, post.id])} />
+          <PostCard key={post.id} post={post} referenceTime={referenceTime} liked={reactions.isLiked(post)} onLike={() => reactions.toggleLike(post)} />
         )) : (
-          <p className="m-0 w-full flex-1 rounded-4xl bg-surface p-6 text-sm text-text-muted" role="status">
-            {state.status === 'loading' ? 'Загружаем публикации…' : state.status === 'error' ? 'Не удалось загрузить публикации. Попробуйте обновить страницу.' : 'Публикаций пока нет. Здесь появятся ваши отчёты об уловах.'}
-          </p>
+          <div className="w-full flex-1 rounded-4xl bg-surface p-6" role="status">
+            <p className="m-0 text-sm text-text-muted">{state.status === 'loading' ? 'Загружаем публикации…' : state.status === 'error' ? 'Не удалось загрузить публикации. Проверьте соединение и повторите.' : 'Публикаций пока нет. Здесь появятся ваши отчёты об уловах.'}
+</p>
+            {state.status === 'error' && onRetry && <Button className="mt-4" variant="secondary" onClick={onRetry}>Повторить</Button>}
+          </div>
         )}
       </section>
       {/* 100cqh — доступная высота области контента, независимо от высоты хедера. */}
