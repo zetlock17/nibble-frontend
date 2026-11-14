@@ -63,6 +63,29 @@ test('handles empty list and rejects responses from a different city or spot', a
   await assert.rejects(loadSpotDetails('13', '/api', signal), /ID/)
 })
 
+test('takes fish only from the requested spot details and preserves empty associations', async () => {
+  const signal = new AbortController().signal
+  const requests = []
+  const otherSpot = { ...spot, id: 13, name: 'Другая бухта' }
+  globalThis.fetch = async (url) => {
+    requests.push(url)
+    const data = url === '/api/spots?city_id=1' ? [spot, otherSpot]
+      : url === '/api/spots/12' ? details
+        : url === '/api/spots/13' ? { ...otherSpot, description: null, species: [], methods: [] }
+          : assert.fail(`Unexpected request: ${url}`)
+    return { ok: true, json: async () => data }
+  }
+  const places = await loadSpots(1, '/api', signal)
+  assert.ok(places.every((place) => place.species === undefined))
+  const first = await loadSpotDetails(places[0].id, '/api', signal)
+  assert.deepEqual(first.species, [{ id: '4', name: 'Камбала' }])
+  assert.deepEqual(first.fishIds, ['4'])
+  const second = await loadSpotDetails(places[1].id, '/api', signal)
+  assert.deepEqual(second.species, [])
+  assert.deepEqual(second.fishIds, [])
+  assert.deepEqual(requests, ['/api/spots?city_id=1', '/api/spots/12', '/api/spots/13'])
+})
+
 function markerEnvironment() {
   globalThis.document = {
     createElement() {

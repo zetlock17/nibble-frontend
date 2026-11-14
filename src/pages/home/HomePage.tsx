@@ -4,8 +4,7 @@ import type { Section } from '@/components/layout/sidebar/Sidebar'
 import { Feed } from '@/features/feed/Feed'
 import { PlacesMap } from '@/features/map/PlacesMap'
 import { FishGuide } from '@/features/fish/FishGuide'
-import { TackleCatalog } from '@/features/tackle/TackleCatalog'
-import { tackleMock } from '@/mocks/tackle/listings'
+import { TackleSection } from '@/features/tackle/TackleSection'
 import { useFish } from '@/features/fish/use-fish'
 import { feedMock, feedMockReferenceTime } from '@/mocks/feed/posts'
 import { ProfilePage } from '@/pages/profile/ProfilePage'
@@ -67,7 +66,7 @@ export function HomePage({ city, section, onSectionChange, onAddCatch, catchOrig
         {(isArticle || section === 'profile' || section === 'places' || section === 'add-catch') && <div aria-hidden="true" className="hidden h-10 sm:block" />}
         {/* Не размонтируем форму: черновик и фото живут до закрытия вкладки. */}
         <div hidden={section !== 'add-catch'}><AddCatchPage fish={fish} city={city} origin={catchOrigin} active={section === 'add-catch'} onBack={() => onSectionChange(catchOrigin)} /></div>
-        {section === 'add-catch' ? null : isArticle ? <ArticlePage key={section} article={section} onBack={() => onSectionChange('home')} /> : section === 'tackle' ? <TackleCatalog state={tackleMock} /> : section === 'profile' ? <ProfilePage profile={{ ...profileMock, name: user?.name ?? 'Рыбак', initials: user?.initials ?? 'Р', city: user?.city ?? '', bio: '', followersCount: 0 }} state={{ status: 'ready', posts: [] }} referenceTime={feedMockReferenceTime} photos={[]} onAddCatch={onAddCatch} onSignOut={onSignOut} /> : section === 'fish' ? <FishGuide /> : section === 'places' ? city ? <PlacesMap key={city.id} cityId={city.id} cityName={city.name} center={city.coordinates} /> : <p role="status">Выберите город, чтобы посмотреть места.</p> : <Feed state={feedMock} referenceTime={feedMockReferenceTime} resources={<HomeResources fish={fish} onOpenGuide={() => onSectionChange('fish')} onOpenArticle={onSectionChange} />} />}
+        {section === 'add-catch' ? null : isArticle ? <ArticlePage key={section} article={section} onBack={() => onSectionChange('home')} /> : section === 'tackle' ? <TackleSection /> : section === 'profile' ? <ProfilePage profile={{ ...profileMock, name: user?.name ?? 'Рыбак', initials: user?.initials ?? 'Р', city: user?.city ?? '', bio: '', followersCount: 0 }} state={{ status: 'ready', posts: [] }} referenceTime={feedMockReferenceTime} photos={[]} onAddCatch={onAddCatch} onSignOut={onSignOut} /> : section === 'fish' ? <FishGuide /> : section === 'places' ? city ? <PlacesMap key={city.id} cityId={city.id} cityName={city.name} center={city.coordinates} /> : <p role="status">Выберите город, чтобы посмотреть места.</p> : <Feed state={feedMock} referenceTime={feedMockReferenceTime} resources={<HomeResources fish={fish} onOpenGuide={() => onSectionChange('fish')} onOpenArticle={onSectionChange} />} />}
       </div>
       {section === 'home' && <div className="hidden min-w-64 flex-1 pt-10 2xl:block 2xl:h-full 2xl:min-h-0 2xl:overflow-hidden"><HomeResources fish={fish} onOpenGuide={() => onSectionChange('fish')} onOpenArticle={onSectionChange} /></div>}
     </main>

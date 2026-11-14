@@ -4,17 +4,16 @@ import { SearchInput } from '@/components/ui/input/SearchInput'
 import { Select } from '@/components/ui/select/Select'
 import { Button } from '@/components/ui/button/Button'
 import calendarIcon from '@/assets/icons/decorative/calendar.svg'
-import rodIcon from '@/assets/icons/fishing/rod.svg'
 import { TackleCard } from './TackleCard'
-import { filterTackle, formatTackleDate, initialTackleFilters, tackleCategories, type TackleState } from './tackle'
+import { filterTackle, formatTackleDate, initialTackleFilters, type TackleState } from './tackle'
 
 const sorts = [{ value: 'price-asc', label: 'Сначала дешевле' }, { value: 'price-desc', label: 'Сначала дороже' }]
 
-export function TackleCatalog({ state }: { state: TackleState }) {
+export function TackleCatalog({ state, onRetry }: { state: TackleState; onRetry: () => void }) {
   const [filters, setFilters] = useState(initialTackleFilters)
   const listings = state.status === 'ready' ? state.listings : []
   const filtered = filterTackle(listings, filters)
-  const hasFilters = Boolean(filters.query || filters.category || filters.minPrice || filters.maxPrice || filters.sort)
+  const hasFilters = Boolean(filters.query || filters.minPrice || filters.maxPrice || filters.sort)
   const invalidRange = filters.minPrice !== '' && filters.maxPrice !== '' && Number(filters.minPrice) > Number(filters.maxPrice)
   const updated = state.status === 'ready' ? formatTackleDate(state.updatedOn) : undefined
 
@@ -34,8 +33,7 @@ export function TackleCatalog({ state }: { state: TackleState }) {
               </label>
             ))}
           </fieldset>
-          <Select label="Все категории" icon={rodIcon} options={tackleCategories} value={filters.category} onChange={(category) => setFilters({ ...filters, category })} />
-          <Select label="Сначала новые" icon={calendarIcon} options={sorts} value={filters.sort} onChange={(sort) => setFilters({ ...filters, sort })} />
+          <Select label="Порядок Фарпоста" icon={calendarIcon} options={sorts} value={filters.sort} onChange={(sort) => setFilters({ ...filters, sort })} />
         </div>
         {invalidRange && <p id="tackle-price-error" className="m-0 text-sm text-text" role="alert">Цена «от» должна быть не больше цены «до».</p>}
         {hasFilters && <Button className="self-start" variant="secondary" onClick={() => setFilters(initialTackleFilters)}>Сбросить фильтры</Button>}
@@ -48,7 +46,10 @@ export function TackleCatalog({ state }: { state: TackleState }) {
           </div>
         ) : (
           <p className="m-0 rounded-3xl bg-surface p-6 text-sm leading-6 text-text-muted" role="status">{listings.length ? 'Объявлений не найдено. Измените запрос или сбросьте фильтры.' : 'Объявлений пока нет. Загляните позже.'}</p>
-        ) : <p className="m-0 rounded-3xl bg-surface p-6 text-sm leading-6 text-text-muted" role="status">{state.status === 'loading' ? 'Загружаем снасти…' : 'Не удалось загрузить объявления. Попробуйте обновить страницу.'}</p>}
+        ) : <div className="flex flex-col items-start gap-3 rounded-3xl bg-surface p-6 text-sm leading-6 text-text-muted" role={state.status === 'error' ? 'alert' : 'status'}>
+          <p className="m-0">{state.status === 'loading' ? 'Загружаем снасти с Фарпоста…' : 'Не удалось загрузить объявления с Фарпоста. Попробуйте ещё раз.'}</p>
+          {state.status === 'error' && <Button variant="secondary" onClick={onRetry}>Повторить</Button>}
+        </div>}
       </div>
     </section>
   )
