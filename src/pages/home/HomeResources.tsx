@@ -3,7 +3,7 @@ import fishImage from '@/assets/images/guides/fish-identification.png'
 import knotsImage from '@/assets/images/guides/fishing-knots.png'
 import arrowIcon from '@/assets/icons/actions/arrow_up.svg'
 import { SeasonalFish } from '@/features/fish/SeasonalFish'
-import type { Fish } from '@/features/fish/fish'
+import type { FishState } from '@/features/fish/use-fish'
 import { IconButton } from '@/components/ui/button/IconButton'
 
 const resources = [
@@ -11,7 +11,7 @@ const resources = [
   { id: 'fish', title: 'Какую рыбу поймал?', description: 'На что смотреть, если не знаете название рыбы: форма тела, окраска, плавники и хвост. Как сравнивать похожие виды и какие детали улова стоит сфотографировать для определения.', image: fishImage },
 ]
 
-export function HomeResources({ fish, onOpenGuide, onOpenArticle, className = '' }: { fish: readonly Fish[]; onOpenGuide: () => void; onOpenArticle: (article: 'article-knots' | 'article-fish') => void; className?: string }) {
+export function HomeResources({ fish, onOpenGuide, onOpenArticle, className = '' }: { fish: FishState; onOpenGuide: () => void; onOpenArticle: (article: 'article-knots' | 'article-fish') => void; className?: string }) {
   const [failedImages, setFailedImages] = useState<string[]>([])
   const [articleIndex, setArticleIndex] = useState(0)
   const resource = resources[articleIndex]

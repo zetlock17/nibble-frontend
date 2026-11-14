@@ -59,7 +59,6 @@ export function FishDetails({ fish, onBack }: { fish: Fish; onBack: () => void }
                   <div className="rounded-2xl bg-search p-4"><p className="m-0 text-xs text-text-muted">Длина</p><p className="mt-1 mb-0 text-xl font-extrabold">{details.typicalLengthCm != null ? `${details.typicalLengthCm} см` : 'Не указана'}</p></div>
                   <div className="rounded-2xl bg-search p-4"><p className="m-0 text-xs text-text-muted">Вес</p><p className="mt-1 mb-0 text-xl font-extrabold">{details.typicalWeightG != null ? `${details.typicalWeightG} г` : 'Не указан'}</p></div>
                 </div>
-                <p className="mt-3 mb-0 text-xs leading-5 text-text-muted">Пример для оформления карточки, не справочные значения.</p>
               </section>
             </>
           ) : null}
