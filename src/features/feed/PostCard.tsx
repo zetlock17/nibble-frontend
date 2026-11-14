@@ -88,7 +88,7 @@ export function PostCard({ post, referenceTime, liked, following, onLike, onFoll
 
       <footer className="flex flex-wrap items-center gap-x-4 gap-y-2">
         <button
-          className={`inline-flex min-h-11 items-center gap-1.5 rounded-pill border-0 bg-transparent px-0 py-1 text-lg leading-6 tabular-nums focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus sm:min-h-8 ${liked ? 'font-bold text-danger' : 'text-text-muted hover:text-focus'}`}
+          className={`inline-flex min-h-11 items-center gap-1.5 rounded-pill border-0 bg-transparent px-0 py-1 text-lg leading-6 tabular-nums focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus sm:min-h-8 ${liked ? 'font-bold text-danger' : 'text-social-icon hover:text-danger'}`}
           type="button"
           aria-label={liked ? 'Убрать лайк' : 'Нравится'}
           aria-pressed={liked}
@@ -97,7 +97,7 @@ export function PostCard({ post, referenceTime, liked, following, onLike, onFoll
           <span aria-hidden="true" className="size-5.5 bg-current mask-contain mask-center mask-no-repeat" style={{ maskImage: `url("${liked ? heartFullIcon : heartLineIcon}")` }} />
           <span>{post.likesCount + Number(liked)}</span>
         </button>
-        <span className="inline-flex min-h-8 items-center gap-1.5 text-lg leading-6 text-text-muted tabular-nums" aria-label={`Комментарии, ${post.commentsCount}`}>
+        <span className="inline-flex min-h-8 items-center gap-1.5 text-lg leading-6 text-social-icon tabular-nums" aria-label={`Комментарии, ${post.commentsCount}`}>
           <img className="size-5.5" src={commentIcon} alt="" />
           <span>{post.commentsCount}</span>
         </span>
