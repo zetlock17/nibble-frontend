@@ -5,7 +5,8 @@ import { scheduleSearch, type SearchResult, type SearchTarget } from './search-a
 const apiBase = import.meta.env.VITE_API_BASE_URL?.trim() || '/api'
 type SearchOption = { key: string; name: string; description?: string; target: SearchTarget }
 
-export function HeaderSearch({ cityId, onNavigate }: { cityId: number | null; onNavigate: (target: SearchTarget) => void }) {
+// collapsed скрывает поле только на телефоне, где поиск раскрывается кнопкой в шапке.
+export function HeaderSearch({ cityId, collapsed = false, onNavigate }: { cityId: number | null; collapsed?: boolean; onNavigate: (target: SearchTarget) => void }) {
   const id = useId()
   const rootRef = useRef<HTMLDivElement>(null)
   const listRef = useRef<HTMLDivElement>(null)
@@ -23,6 +24,13 @@ export function HeaderSearch({ cityId, onNavigate }: { cityId: number | null; on
     ...current.data.species.map((fish): SearchOption => ({ key: `species-${fish.id}`, name: fish.name, description: fish.description, target: { kind: 'species', id: fish.id } })),
   ] : []
   const active = expanded ? options[activeIndex] : undefined
+  const wasCollapsed = useRef(collapsed)
+
+  // Когда поиск раскрыт кнопкой в шапке, фокус переходит в поле.
+  useEffect(() => {
+    if (wasCollapsed.current && !collapsed) rootRef.current?.querySelector('input')?.focus()
+    wasCollapsed.current = collapsed
+  }, [collapsed])
 
   useEffect(() => {
     if (!expanded || !cityId) return
@@ -49,7 +57,7 @@ export function HeaderSearch({ cityId, onNavigate }: { cityId: number | null; on
     onNavigate(option.target)
   }
 
-  return <div ref={rootRef} className="relative max-w-126 grow shrink basis-55 max-md:order-1 max-md:max-w-none max-md:basis-full" onBlur={(event) => {
+  return <div ref={rootRef} className={`relative max-w-126 grow shrink basis-55 max-md:order-1 max-md:max-w-none max-md:basis-full ${collapsed ? 'max-sm:hidden' : ''}`} onBlur={(event) => {
     if (!event.currentTarget.contains(event.relatedTarget)) setOpen(false)
   }} onKeyDown={(event) => {
     if (event.key === 'Escape') { event.preventDefault(); rootRef.current?.querySelector('input')?.focus(); setOpen(false); setActiveIndex(-1); return }

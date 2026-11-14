@@ -14,7 +14,7 @@ function WeatherImage({ condition, className }: { condition: WeatherCondition | 
 }
 
 export function WeatherCard({ state, now, onRetry }: WeatherCardProps) {
-  const cardClassName = 'rounded-4xl bg-linear-to-br from-weather-start via-weather to-weather-end px-5 py-4 text-surface'
+  const cardClassName = 'rounded-4xl bg-linear-to-br from-weather-start via-weather to-weather-end px-5 py-4 text-surface max-sm:px-6 max-sm:py-5'
 
   if (state.status !== 'ready') {
     const messages = {
@@ -41,7 +41,7 @@ export function WeatherCard({ state, now, onRetry }: WeatherCardProps) {
   const { location, current, days, source, updatedAt } = state.forecast
   const referenceTime = source.isDemo && current?.observedAt ? current.observedAt : new Date(now).toISOString()
   const today = new Intl.DateTimeFormat('en-CA', { year: 'numeric', month: '2-digit', day: '2-digit', timeZone: location.timeZone }).format(new Date(referenceTime))
-  const upcomingDays = days.filter((day) => day.date >= today).slice(0, 5)
+  const upcomingDays = days.filter((day) => day.date >= today).slice(0, 6)
   const wind = current?.wind
   const updatedMs = updatedAt ? Date.parse(updatedAt) : NaN
   const validUpdate = Number.isFinite(updatedMs) && updatedMs <= now
@@ -54,12 +54,12 @@ export function WeatherCard({ state, now, onRetry }: WeatherCardProps) {
     <section aria-label={`Погода, ${location.name}`}>
       <div className={cardClassName}>
         <div className="flex flex-wrap items-baseline justify-between gap-x-2 gap-y-1">
-          <h2 className="m-0 inline-flex min-w-0 items-center gap-1.5 text-sm leading-5 font-semibold wrap-anywhere">
+          <h2 className="m-0 inline-flex min-w-0 items-center gap-1.5 text-sm leading-5 font-semibold wrap-anywhere max-sm:text-lg max-sm:font-bold">
             <span className="min-w-0">{location.name}</span>
             <img className="size-3 shrink-0 object-contain invert" src={locationArrow} alt="" />
           </h2>
           <div className="relative text-right">
-            <p className="m-0 text-xs leading-5">
+            <p className="m-0 text-xs leading-5 max-sm:text-sm">
               {wind?.speedMs != null && Number.isFinite(wind.speedMs)
                 ? `Ветер ${wind.direction ? wind.direction + ' ' : ''}${wind.speedMs} м/с`
                 : 'Ветер неизвестен'}
@@ -73,23 +73,24 @@ export function WeatherCard({ state, now, onRetry }: WeatherCardProps) {
         </div>
 
         <div className="mb-2 flex items-center gap-0">
-          <span className="text-4xl leading-none font-medium tabular-nums" aria-label={current?.temperatureC == null ? 'Температура неизвестна' : undefined}>
+          <span className="text-4xl leading-none font-medium tabular-nums max-sm:text-6xl" aria-label={current?.temperatureC == null ? 'Температура неизвестна' : undefined}>
             {formatTemperature(current?.temperatureC ?? null)}
           </span>
-          <WeatherImage condition={current?.condition ?? null} className="size-16" />
+          <WeatherImage condition={current?.condition ?? null} className="size-16 max-sm:size-20" />
         </div>
 
         {!current && <p className="m-0 mb-2 text-xs">Текущая погода недоступна.</p>}
 
+        {/* На телефоне карточка широкая и показывает шесть дней, в узкой боковой панели остаются пять. */}
         {upcomingDays.length > 0 ? (
-          <ul className="m-0 grid list-none grid-cols-5 gap-1 p-0">
+          <ul className="m-0 grid list-none grid-cols-6 gap-1 p-0 sm:grid-cols-5 sm:[&>li:nth-child(n+6)]:hidden">
             {upcomingDays.map((day) => {
               const label = formatForecastDate(day.date, referenceTime, location.timeZone)
               return (
                 <li className="flex min-w-0 flex-col items-center" key={day.date}>
-                  <time className="text-2xs leading-4 font-medium whitespace-nowrap first-letter:uppercase" dateTime={day.date}>{label}</time>
-                  <WeatherImage condition={day.condition} className="size-9" />
-                  <span className="text-sm leading-5 font-extrabold tabular-nums">{formatTemperature(day.temperatureC)}</span>
+                  <time className="text-2xs leading-4 font-medium whitespace-nowrap first-letter:uppercase max-sm:text-xs" dateTime={day.date}>{label}</time>
+                  <WeatherImage condition={day.condition} className="size-9 max-sm:size-10" />
+                  <span className="text-sm leading-5 font-extrabold tabular-nums max-sm:text-base">{formatTemperature(day.temperatureC)}</span>
                 </li>
               )
             })}
