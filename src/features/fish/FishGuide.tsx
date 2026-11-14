@@ -1,5 +1,5 @@
 import { FilterBar } from '@/components/ui/filter-bar/FilterBar'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { SearchInput } from '@/components/ui/input/SearchInput'
 import { Select } from '@/components/ui/select/Select'
 import rodIcon from '@/assets/icons/fishing/rod.svg'
@@ -8,6 +8,7 @@ import calendarIcon from '@/assets/icons/decorative/calendar.svg'
 import trashIcon from '@/assets/icons/actions/trash.svg'
 import { IconButton } from '@/components/ui/button/IconButton'
 import { FishCard } from './FishCard'
+import { FishDetails } from './FishDetails'
 import { filterFish, fishingMethods, fishHabitats, type Fish, type Season } from './fish'
 
 const seasons: readonly { value: Exclude<Season, 'all'>; label: string }[] = [
@@ -22,6 +23,13 @@ export function FishGuide({ fish }: { fish: readonly Fish[] }) {
   const [season, setSeason] = useState<Season>('all')
   const [method, setMethod] = useState('')
   const [habitat, setHabitat] = useState('')
+  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const scrollRef = useRef<HTMLElement>(null)
+  const selectedFish = fish.find((item) => item.id === selectedId)
+  useEffect(() => {
+    scrollRef.current?.scrollTo({ top: 0 })
+    scrollRef.current?.closest('main')?.scrollTo({ top: 0 })
+  }, [selectedId])
   const filteredFish = filterFish(fish, query, season, method, habitat)
   const hasFilters = Boolean(query || season !== 'all' || method || habitat)
   const resetFilters = () => {
@@ -30,10 +38,18 @@ export function FishGuide({ fish }: { fish: readonly Fish[] }) {
     setMethod('')
     setHabitat('')
   }
+  function closeDetails() {
+    const id = selectedId
+    setSelectedId(null)
+    requestAnimationFrame(() => {
+      Array.from(scrollRef.current?.querySelectorAll<HTMLButtonElement>('[data-fish-id]') ?? []).find((button) => button.dataset.fishId === id)?.focus()
+    })
+  }
 
   return (
-    <section data-page-scroll className="flex min-w-0 flex-col gap-4 sm:h-full sm:min-h-0 sm:overflow-y-auto sm:overscroll-none" aria-labelledby="fish-guide-title">
+    <section ref={scrollRef} data-page-scroll className="flex min-w-0 flex-col gap-4 sm:h-full sm:min-h-0 sm:overflow-y-auto sm:overscroll-none" aria-label="Справочник рыб">
       <div aria-hidden="true" className="hidden h-6 shrink-0 sm:block" />
+      {selectedFish ? <FishDetails key={selectedFish.id} fish={selectedFish} onBack={closeDetails} /> : <>
       <h1 id="fish-guide-title" className="m-0 shrink-0 text-3xl leading-tight font-extrabold lg:text-4xl">Справочник рыб</h1>
       <FilterBar className="flex flex-col gap-3 pt-2">
         <div className="flex flex-wrap items-center gap-3">
@@ -59,7 +75,7 @@ export function FishGuide({ fish }: { fish: readonly Fish[] }) {
       <div className="flex shrink-0 flex-col gap-5">
         {filteredFish.length > 0 ? (
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-            {filteredFish.map((item) => <FishCard key={item.id} fish={item} />)}
+            {filteredFish.map((item) => <FishCard key={item.id} fish={item} onSelect={(value) => setSelectedId(value.id)} />)}
           </div>
         ) : (
           <div className="rounded-3xl bg-surface p-6" role="status">
@@ -68,6 +84,7 @@ export function FishGuide({ fish }: { fish: readonly Fish[] }) {
         )}
         <p className="m-0 text-xs leading-5 text-text-muted">Демонстрационные данные. Описания и периоды ловли взяты из макета, способы ловли и места обитания заданы для примера. Фотографии иллюстративные.</p>
       </div>
+      </>}
     </section>
   )
 }

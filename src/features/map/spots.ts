@@ -14,6 +14,10 @@ function optionalText(value: unknown): string | undefined {
   return value.trim() || undefined
 }
 
+export function spotDescriptionParagraphs(description: string): string[] {
+  return description.replace(/\r\n?/g, '\n').split(/\n[\t ]*\n+/).map((paragraph) => paragraph.trim()).filter(Boolean)
+}
+
 function coordinate(value: unknown, max: number): number {
   if ((typeof value !== 'number' && typeof value !== 'string') || value === '') throw new Error('Invalid coordinate')
   const result = Number(value)
@@ -56,7 +60,15 @@ export function parseSpotDetails(value: unknown): Place {
     if (!record(item) || !id(item.id) || typeof item.name !== 'string' || !item.name.trim()) throw new Error('Invalid spot method')
     return item.name.trim()
   })
-  return { ...place, description: optionalText(value.description), species, fishIds: species.map((item) => item.id), methods }
+  let aliases: string[] | undefined
+  if (value.aliases != null) {
+    if (!Array.isArray(value.aliases)) throw new Error('Invalid spot aliases')
+    aliases = value.aliases.map((item) => {
+      if (typeof item !== 'string' || !item.trim()) throw new Error('Invalid spot alias')
+      return item.trim()
+    })
+  }
+  return { ...place, description: optionalText(value.description), species, fishIds: species.map((item) => item.id), methods, aliases }
 }
 
 export async function loadSpots(cityId: number, apiBase: string, signal: AbortSignal): Promise<Place[]> {

@@ -11,7 +11,7 @@ const resources = [
   { id: 'fish', title: 'Какую рыбу поймал?', description: 'На что смотреть, если не знаете название рыбы: форма тела, окраска, плавники и хвост. Как сравнивать похожие виды и какие детали улова стоит сфотографировать для определения.', image: fishImage },
 ]
 
-export function HomeResources({ fish, onOpenGuide, className = '' }: { fish: readonly Fish[]; onOpenGuide: () => void; className?: string }) {
+export function HomeResources({ fish, onOpenGuide, onOpenArticle, className = '' }: { fish: readonly Fish[]; onOpenGuide: () => void; onOpenArticle: (article: 'article-knots' | 'article-fish') => void; className?: string }) {
   const [failedImages, setFailedImages] = useState<string[]>([])
   const [articleIndex, setArticleIndex] = useState(0)
   const resource = resources[articleIndex]
@@ -39,7 +39,7 @@ export function HomeResources({ fish, onOpenGuide, className = '' }: { fish: rea
               <span className="text-xs font-semibold text-text-muted tabular-nums" aria-label={`Статья ${articleIndex + 1} из ${resources.length}`}>{articleIndex + 1} / {resources.length}</span>
               <IconButton icon={arrowIcon} label="Следующая статья" iconClassName="size-5 rotate-90" className="bg-search hover:bg-accent-soft" onClick={() => changeArticle(1)} />
             </div>
-            <button type="button" disabled title="Материал пока готовится" className="inline-flex min-h-9 items-center gap-1 border-0 bg-transparent p-0 text-sm font-bold text-focus disabled:cursor-default">
+            <button type="button" onClick={() => onOpenArticle(resource.id === 'knots' ? 'article-knots' : 'article-fish')} className="inline-flex min-h-9 items-center gap-1 border-0 bg-transparent p-0 text-sm font-bold text-focus hover:text-primary-strong focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus">
               Подробнее
               <img src={arrowIcon} alt="" className="size-5 rotate-90" />
             </button>
