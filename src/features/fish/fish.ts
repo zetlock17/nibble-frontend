@@ -26,6 +26,14 @@ export type Fish = {
   seasons: Exclude<Season, 'all'>[]
   methods?: readonly FishingMethod[]
   habitats?: readonly FishHabitat[]
+  details?: {
+    latinName?: string
+    description?: string
+    identification?: string
+    typicalLengthCm?: number
+    typicalWeightG?: number
+    aliases?: readonly string[]
+  }
 }
 
 export function filterFish(fish: readonly Fish[], query: string, season: Season, method = '', habitat = '') {
