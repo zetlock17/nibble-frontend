@@ -14,15 +14,23 @@ import { profileMock, profilePostsMock } from '@/mocks/profile/profile'
 import { profilePhotosMock } from '@/mocks/profile/photos'
 import { scrollPageFromWheel } from './wheel-scroll'
 import { HomeResources } from './HomeResources'
+import { AddCatchPage } from '@/pages/add-catch/AddCatchPage'
 
 type HomePageProps = {
   section: Section
   onSectionChange: (section: Section) => void
+  onAddCatch: () => void
+  catchOrigin: 'home' | 'profile'
 }
 
-export function HomePage({ section, onSectionChange }: HomePageProps) {
+export function HomePage({ section, onSectionChange, onAddCatch, catchOrigin }: HomePageProps) {
   const mainRef = useRef<HTMLElement>(null)
   const contentRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    contentRef.current?.scrollTo({ top: 0 })
+    mainRef.current?.scrollTo({ top: 0 })
+  }, [section])
 
   useEffect(() => {
     const main = mainRef.current
@@ -46,12 +54,14 @@ export function HomePage({ section, onSectionChange }: HomePageProps) {
   }, [])
 
   return (
-    <main ref={mainRef} id="main-content" className="flex min-h-0 flex-1 flex-col items-start gap-6 overflow-y-auto overscroll-none pt-6 sm:flex-row sm:gap-8 sm:overflow-clip sm:pt-0" aria-label={section === 'tackle' ? 'Снасти и удочки' : section === 'profile' ? 'Мой профиль' : section === 'fish' ? 'Справочник рыб' : section === 'places' ? 'Карта мест' : 'Главная'}>
+    <main ref={mainRef} id="main-content" className="flex min-h-0 flex-1 flex-col items-start gap-6 overflow-y-auto overscroll-none pt-6 sm:flex-row sm:gap-8 sm:overflow-clip sm:pt-0" aria-label={section === 'add-catch' ? 'Добавить улов' : section === 'tackle' ? 'Снасти и удочки' : section === 'profile' ? 'Мой профиль' : section === 'fish' ? 'Справочник рыб' : section === 'places' ? 'Карта мест' : 'Главная'}>
       <Sidebar section={section} onSectionChange={onSectionChange} />
       {/* Размер контейнера нужен галерее, чтобы ограничить высоту доступной областью контента. */}
-      <div ref={contentRef} className={`w-full min-w-0 max-sm:order-first max-sm:shrink-0 sm:h-full sm:overscroll-none sm:[container-type:size] sm:[scrollbar-width:none] sm:[&::-webkit-scrollbar]:hidden ${section === 'profile' || section === 'places' ? 'sm:overflow-y-auto' : 'sm:overflow-clip'} ${section === 'fish' || section === 'profile' || section === 'tackle' || section === 'places' ? 'sm:flex-1' : 'max-w-188'}`}>
-        {(section === 'profile' || section === 'places') && <div aria-hidden="true" className="hidden h-10 sm:block" />}
-        {section === 'tackle' ? <TackleCatalog state={tackleMock} /> : section === 'profile' ? <ProfilePage profile={profileMock} state={{ status: 'ready', posts: profilePostsMock }} referenceTime={feedMockReferenceTime} photos={profilePhotosMock} /> : section === 'fish' ? <FishGuide fish={fishMock} /> : section === 'places' ? <PlacesMap places={placesMock} fish={fishMock} /> : <Feed state={feedMock} referenceTime={feedMockReferenceTime} resources={<HomeResources fish={fishMock} onOpenGuide={() => onSectionChange('fish')} />} />}
+      <div ref={contentRef} className={`w-full min-w-0 max-sm:order-first max-sm:shrink-0 sm:h-full sm:overscroll-none sm:[container-type:size] sm:[scrollbar-width:none] sm:[&::-webkit-scrollbar]:hidden ${section === 'profile' || section === 'places' || section === 'add-catch' ? 'sm:overflow-y-auto' : 'sm:overflow-clip'} ${section === 'fish' || section === 'profile' || section === 'tackle' || section === 'places' || section === 'add-catch' ? 'sm:flex-1' : 'max-w-188'}`}>
+        {(section === 'profile' || section === 'places' || section === 'add-catch') && <div aria-hidden="true" className="hidden h-10 sm:block" />}
+        {/* Не размонтируем форму: черновик и фото живут до закрытия вкладки. */}
+        <div hidden={section !== 'add-catch'}><AddCatchPage fish={fishMock} places={placesMock} origin={catchOrigin} active={section === 'add-catch'} onBack={() => onSectionChange(catchOrigin)} /></div>
+        {section === 'add-catch' ? null : section === 'tackle' ? <TackleCatalog state={tackleMock} /> : section === 'profile' ? <ProfilePage profile={profileMock} state={{ status: 'ready', posts: profilePostsMock }} referenceTime={feedMockReferenceTime} photos={profilePhotosMock} onAddCatch={onAddCatch} /> : section === 'fish' ? <FishGuide fish={fishMock} /> : section === 'places' ? <PlacesMap places={placesMock} fish={fishMock} /> : <Feed state={feedMock} referenceTime={feedMockReferenceTime} resources={<HomeResources fish={fishMock} onOpenGuide={() => onSectionChange('fish')} />} />}
       </div>
       {section === 'home' && <div className="hidden min-w-64 flex-1 pt-10 2xl:block 2xl:h-full 2xl:min-h-0 2xl:overflow-hidden"><HomeResources fish={fishMock} onOpenGuide={() => onSectionChange('fish')} /></div>}
     </main>

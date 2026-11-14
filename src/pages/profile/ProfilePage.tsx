@@ -15,13 +15,14 @@ type ProfilePageProps = {
   state: FeedState
   referenceTime: string
   photos: readonly GridPhoto[]
+  onAddCatch: () => void
 }
 
 const postLabels = { one: 'пост', few: 'поста', many: 'постов', other: 'поста' }
 const followerLabels = { one: 'подписчик', few: 'подписчика', many: 'подписчиков', other: 'подписчика' }
 const pluralRules = new Intl.PluralRules('ru')
 
-export function ProfilePage({ profile, state, referenceTime, photos }: ProfilePageProps) {
+export function ProfilePage({ profile, state, referenceTime, photos, onAddCatch }: ProfilePageProps) {
   const [likedPosts, setLikedPosts] = useState<string[]>([])
   const [failedCover, setFailedCover] = useState<string>()
   const posts = state.status === 'ready' ? state.posts : []
@@ -38,7 +39,7 @@ export function ProfilePage({ profile, state, referenceTime, photos }: ProfilePa
               <Avatar initials={profile.initials} size="lg" />
             </div>
             <div className="flex flex-wrap gap-3 pt-4 max-md:w-full max-md:pt-0">
-              <Button size="md" aria-disabled="true" title="Публикация улова пока недоступна">
+              <Button size="md" onClick={onAddCatch}>
                 <img className="size-5" src={plusIcon} alt="" />Добавить улов
               </Button>
               <Button variant="dark" size="md" aria-disabled="true" title="Редактирование профиля пока недоступно">

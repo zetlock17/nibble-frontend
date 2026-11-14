@@ -15,7 +15,7 @@ const navigationItems = [
   { id: 'tackle', label: 'Снасти и удочки', icon: rodIcon },
 ]
 
-export type Section = 'home' | 'places' | 'fish' | 'profile' | 'tackle'
+export type Section = 'home' | 'places' | 'fish' | 'profile' | 'tackle' | 'add-catch'
 
 type SidebarProps = {
   section: Section
