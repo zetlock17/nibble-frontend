@@ -23,10 +23,11 @@ type FeedProps = {
     toggleFollow: (post: FeedPost) => void
   }
   currentUserId?: string
+  onRequireAuth?: () => void
   resources?: ReactNode
 }
 
-export function Feed({ state, referenceTime, filters, onFiltersChange, places, fish, more, onRetry, reactions, currentUserId, resources }: FeedProps) {
+export function Feed({ state, referenceTime, filters, onFiltersChange, places, fish, more, onRetry, reactions, currentUserId, onRequireAuth, resources }: FeedProps) {
   const posts = state.status === 'ready' ? state.posts : []
   const resetFilters = () => onFiltersChange(initialFeedFilters)
   const hasFilters = filters.source !== 'all' || Boolean(filters.placeId) || Boolean(filters.fishId)
@@ -53,6 +54,7 @@ export function Feed({ state, referenceTime, filters, onFiltersChange, places, f
               liked={reactions.isLiked(post)}
               following={reactions.isFollowing(post)}
               onLike={() => reactions.toggleLike(post)}
+              comments={onRequireAuth ? { currentUserId, onRequireAuth } : undefined}
               onFollow={post.author.id === currentUserId ? undefined : () => reactions.toggleFollow(post)}
             />
           )) : (

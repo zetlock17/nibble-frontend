@@ -28,6 +28,7 @@ type ProfilePageProps = {
   photos: readonly GridPhoto[]
   reactions: { isLiked: (post: FeedPost) => boolean; toggleLike: (post: FeedPost) => void; error: string }
   onRetry?: () => void
+  currentUserId?: string
   onAddCatch: () => void
   onSignOut: () => void
   signingOut: boolean
@@ -37,7 +38,7 @@ const postLabels = { one: 'пост', few: 'поста', many: 'постов', o
 const followerLabels = { one: 'подписчик', few: 'подписчика', many: 'подписчиков', other: 'подписчика' }
 const pluralRules = new Intl.PluralRules('ru')
 
-export function ProfilePage({ profile, state, referenceTime, photos, reactions, onRetry, onAddCatch, onSignOut, signingOut }: ProfilePageProps) {
+export function ProfilePage({ profile, state, referenceTime, photos, reactions, onRetry, currentUserId, onAddCatch, onSignOut, signingOut }: ProfilePageProps) {
   const [failedCover, setFailedCover] = useState<string>()
   const posts = state.status === 'ready' ? state.posts : []
 
@@ -87,7 +88,7 @@ export function ProfilePage({ profile, state, referenceTime, photos, reactions, 
       <section className="flex w-full min-w-0 max-w-188 flex-col gap-6 xl:w-3/5 xl:shrink-0" aria-label="Публикации профиля" aria-busy={state.status === 'loading'}>
         {reactions.error && <p className="m-0 text-sm text-focus" role="alert">{reactions.error}</p>}
         {state.status === 'ready' && posts.length > 0 ? posts.map((post) => (
-          <PostCard key={post.id} post={post} referenceTime={referenceTime} liked={reactions.isLiked(post)} onLike={() => reactions.toggleLike(post)} />
+          <PostCard key={post.id} post={post} referenceTime={referenceTime} liked={reactions.isLiked(post)} onLike={() => reactions.toggleLike(post)} comments={currentUserId ? { currentUserId, onRequireAuth: () => {} } : undefined} />
         )) : (
           <div className="w-full flex-1 rounded-4xl bg-surface p-6" role="status">
             <p className="m-0 text-sm text-text-muted">{state.status === 'loading' ? 'Загружаем публикации…' : state.status === 'error' ? 'Не удалось загрузить публикации. Проверьте соединение и повторите.' : 'Публикаций пока нет. Здесь появятся ваши отчёты об уловах.'}

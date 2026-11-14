@@ -29,6 +29,7 @@ export function LiveFeed({ cityId, userId, onRequireAuth, resources }: LiveFeedP
       onRetry={feed.retry}
       reactions={reactions}
       currentUserId={userId === undefined ? undefined : String(userId)}
+      onRequireAuth={onRequireAuth}
       resources={resources}
     />
   )
