@@ -1,10 +1,10 @@
-import { useEffect, useId, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
 import fishIcon from '@/assets/icons/fishing/fish.svg'
 import { Button } from '@/components/ui/button/Button'
 import { SearchSelect } from '@/components/ui/select/SearchSelect'
 import { uploadImage } from '@/features/feed/feed-actions'
-import { adminError, adminGet, adminSend, useAdminData } from './admin-api'
+import { adminError, adminGet, adminSend, deleteFile, useAdminData } from './admin-api'
 import type { Option } from './admin-api'
 import { monthNames, optionPaths } from './resources'
 import type { Field, Item, OptionSource, Resource, Values } from './resources'
@@ -44,29 +44,60 @@ function validate(fields: readonly Field[], values: Values, creating: boolean) {
   return ''
 }
 
-function ImageField({ value, onChange, label }: { value: string; onChange: (key: string) => void; label: string }) {
+// Файл попадает на сервер сразу после выбора. Пока запись не сохранена, «Убрать» удаляет его оттуда.
+function ImageField({ value, currentUrl, onChange, label }: { value: string; currentUrl?: string; onChange: (key: string) => void; label: string }) {
+  const inputRef = useRef<HTMLInputElement>(null)
   const [state, setState] = useState<{ status: 'idle' | 'busy' | 'error'; preview?: string }>({ status: 'idle' })
+  const previewRef = useRef<string>(undefined)
+
+  useEffect(() => () => { if (previewRef.current) URL.revokeObjectURL(previewRef.current) }, [])
+
+  function setPreview(url?: string) {
+    if (previewRef.current) URL.revokeObjectURL(previewRef.current)
+    previewRef.current = url
+    setState((current) => ({ ...current, preview: url }))
+  }
+
   async function pick(file?: File) {
     if (!file) return
-    if (!['image/jpeg', 'image/png'].includes(file.type) || file.size > 10 * 1024 * 1024) { setState({ status: 'error' }); return }
-    setState({ status: 'busy' })
+    if (!['image/jpeg', 'image/png'].includes(file.type) || file.size > 10 * 1024 * 1024) { setState({ status: 'error', preview: state.preview }); return }
+    setState({ status: 'busy', preview: state.preview })
     try {
-      onChange(await uploadImage(file))
-      setState({ status: 'idle', preview: URL.createObjectURL(file) })
-    } catch { setState({ status: 'error' }) }
+      const key = await uploadImage(file)
+      if (value) void deleteFile(value)
+      onChange(key)
+      setPreview(URL.createObjectURL(file))
+      setState((current) => ({ ...current, status: 'idle' }))
+    } catch { setState({ status: 'error', preview: state.preview }) }
   }
+
+  function discard() {
+    if (value) void deleteFile(value)
+    onChange('')
+    setPreview(undefined)
+    setState({ status: 'idle' })
+  }
+
+  const shown = value ? state.preview : currentUrl
   return (
-    <div className="flex flex-col gap-2">
-      <input type="file" accept="image/jpeg,image/png" aria-label={label} className="text-sm" onChange={(event) => { void pick(event.target.files?.[0]); event.target.value = '' }} />
-      {state.preview && value && <img src={state.preview} alt="Выбранное фото" className="h-32 w-48 rounded-2xl object-cover" />}
-      {state.status === 'busy' && <p className="m-0 text-xs text-text-muted" role="status">Загружаем фото…</p>}
+    <div className="flex flex-col items-start gap-3">
+      <div className="flex h-40 w-full max-w-72 items-center justify-center overflow-hidden rounded-3xl bg-accent-soft">
+        {shown ? <img src={shown} alt={value ? 'Новое фото' : 'Текущее фото'} className="size-full object-cover" /> : <span className="px-4 text-center text-sm text-text-muted">Фото не выбрано</span>}
+      </div>
+      <p className="m-0 text-xs text-text-muted" role="status">
+        {state.status === 'busy' ? 'Загружаем фото…' : value ? 'Новое фото. Оно заменит прежнее после сохранения.' : currentUrl ? 'Текущее фото. Чтобы заменить его, выберите новое.' : 'JPEG или PNG до 10 МБ.'}
+      </p>
+      <input ref={inputRef} type="file" accept="image/jpeg,image/png" aria-label={label} className="sr-only" tabIndex={-1} onChange={(event) => { void pick(event.target.files?.[0]); event.target.value = '' }} />
+      <div className="flex flex-wrap gap-2">
+        <Button variant="secondary" disabled={state.status === 'busy'} onClick={() => inputRef.current?.click()}>{shown ? 'Заменить фото' : 'Выбрать фото'}</Button>
+        {value && <Button variant="secondary" disabled={state.status === 'busy'} onClick={discard}>Убрать новое фото</Button>}
+      </div>
       {state.status === 'error' && <p className="m-0 text-xs text-danger" role="alert">Не удалось загрузить фото. Нужен JPEG или PNG до 10 МБ.</p>}
-      {!state.preview && <p className="m-0 text-xs text-text-muted">Если не выбрать новое фото, останется прежнее.</p>}
     </div>
   )
 }
 
-function FieldInput({ field, value, options, onChange, id }: { field: Field; value: Values[string]; options: Option[]; onChange: (value: Values[string]) => void; id: string }) {
+function FieldInput({ field, value, currentUrl, options, onChange, id }: { field: Field; value: Values[string]; currentUrl?: string; options: Option[]; onChange: (value: Values[string]) => void; id: string }) {
   const stringValue = typeof value === 'string' ? value : ''
   const listValue = Array.isArray(value) ? value : []
   switch (field.kind) {
@@ -93,7 +124,7 @@ function FieldInput({ field, value, options, onChange, id }: { field: Field; val
       </div>
     )
     case 'tags': return <input id={id} className={fieldClass} value={listValue.join(',')} onChange={(event) => onChange(event.target.value.split(','))} />
-    case 'image': return <ImageField value={stringValue} onChange={onChange} label={field.label} />
+    case 'image': return <ImageField value={stringValue} currentUrl={currentUrl} onChange={onChange} label={field.label} />
     default: return <input id={id} className={fieldClass} type="text" inputMode={field.kind === 'number' ? 'numeric' : field.kind === 'decimal' ? 'decimal' : undefined} maxLength={field.maxLength} value={stringValue} onChange={(event) => onChange(event.target.value)} />
   }
 }
@@ -106,6 +137,14 @@ function ResourceForm({ resource, initial, itemId, onDone, onCancel }: { resourc
   const creating = itemId === null
   const sources = [...new Set(resource.fields.flatMap((field) => field.options ? [field.options] : []))]
   const { options, failed } = useOptions(sources)
+
+  function cancel() {
+    for (const field of resource.fields) {
+      const key = values[field.key]
+      if (field.kind === 'image' && typeof key === 'string' && key) void deleteFile(key)
+    }
+    onCancel()
+  }
 
   async function submit(event: FormEvent) {
     event.preventDefault()
@@ -131,7 +170,7 @@ function ResourceForm({ resource, initial, itemId, onDone, onCancel }: { resourc
         return (
           <div key={field.key} className={field.kind === 'checkbox' ? 'flex items-center gap-3' : 'flex flex-col gap-2'}>
             <label htmlFor={id} className="text-sm font-bold">{field.label}{field.required && (field.kind !== 'image' || creating) ? ' *' : ''}</label>
-            <FieldInput id={id} field={field} value={values[field.key]} options={field.options ? options[field.options] ?? [] : []} onChange={(value) => { setValues((current) => ({ ...current, [field.key]: value })); setMessage('') }} />
+            <FieldInput id={id} field={field} value={values[field.key]} currentUrl={field.previewKey && typeof values[field.previewKey] === 'string' ? String(values[field.previewKey]) || undefined : undefined} options={field.options ? options[field.options] ?? [] : []} onChange={(value) => { setValues((current) => ({ ...current, [field.key]: value })); setMessage('') }} />
             {field.hint && <p className="m-0 text-xs text-text-muted">{field.hint}</p>}
           </div>
         )
@@ -139,7 +178,7 @@ function ResourceForm({ resource, initial, itemId, onDone, onCancel }: { resourc
       {message && <p className="m-0 text-sm text-danger" role="alert">{message}</p>}
       <div className="flex flex-wrap gap-3">
         <Button type="submit" size="md" disabled={busy}>{busy ? 'Сохраняем…' : 'Сохранить'}</Button>
-        <Button variant="secondary" size="md" onClick={onCancel} disabled={busy}>Отмена</Button>
+        <Button variant="secondary" size="md" onClick={cancel} disabled={busy}>Отмена</Button>
       </div>
     </form>
   )
