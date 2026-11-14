@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { TackleCatalog } from './TackleCatalog'
 import type { TackleState } from './tackle'
-import { loadFarpostListings } from './tackle-api'
+import { loadTackleListings } from './tackle-api'
 
 const apiBase = import.meta.env.VITE_API_BASE_URL?.trim() || '/api'
 
@@ -12,7 +12,7 @@ export function TackleSection() {
   useEffect(() => {
     const controller = new AbortController()
     const signal = AbortSignal.any([controller.signal, AbortSignal.timeout(60000)])
-    loadFarpostListings(10, apiBase, signal).then((listings) => {
+    loadTackleListings(10, apiBase, signal).then((listings) => {
       if (!controller.signal.aborted) setResult({ attempt, state: { status: 'ready', listings } })
     }).catch(() => {
       if (!controller.signal.aborted) setResult({ attempt, state: { status: 'error' } })

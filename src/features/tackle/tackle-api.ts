@@ -1,14 +1,5 @@
 import { getFarpostListingUrl, type TackleListing } from './tackle.ts'
 
-export type ListingDetail = {
-  farpost_id: string
-  title: string
-  url: string
-  price_rub: number | null
-  photo_urls: string[]
-  seller_name: string | null
-}
-
 function record(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
@@ -21,31 +12,28 @@ function photoUrl(value: string): string | undefined {
   return undefined
 }
 
-export function parseFarpostListings(value: unknown): TackleListing[] {
-  if (!Array.isArray(value)) throw new Error('Invalid Farpost list')
-  const ids = new Set<string>()
+export function parseTackleListings(value: unknown): TackleListing[] {
+  if (!Array.isArray(value)) throw new Error('Invalid tackle list')
+  const ids = new Set<number>()
   return value.map((item: unknown) => {
-    if (!record(item) || typeof item.farpost_id !== 'string' || !/^\d+$/.test(item.farpost_id) || ids.has(item.farpost_id)
+    if (!record(item) || typeof item.id !== 'number' || !Number.isSafeInteger(item.id) || item.id < 1 || ids.has(item.id)
       || typeof item.title !== 'string' || !item.title.trim() || typeof item.url !== 'string'
-      || (item.price_rub != null && (typeof item.price_rub !== 'number' || !Number.isSafeInteger(item.price_rub) || item.price_rub < 0))
-      || !Array.isArray(item.photo_urls) || !item.photo_urls.every((photo: unknown) => typeof photo === 'string')
-      || (item.seller_name != null && typeof item.seller_name !== 'string')) throw new Error('Invalid Farpost listing')
-    ids.add(item.farpost_id)
-    const images = item.photo_urls.flatMap((photo: string) => photoUrl(photo) ?? [])
-    const seller = typeof item.seller_name === 'string' ? item.seller_name.trim() : ''
+      || (item.price_from_rub != null && (typeof item.price_from_rub !== 'number' || !Number.isSafeInteger(item.price_from_rub) || item.price_from_rub < 0))
+      || (item.image_url != null && typeof item.image_url !== 'string')) throw new Error('Invalid tackle listing')
+    ids.add(item.id)
+    const image = typeof item.image_url === 'string' ? photoUrl(item.image_url) : undefined
     return {
-      id: `farpost-${item.farpost_id}`, title: item.title.trim(),
+      id: String(item.id), title: item.title.trim(),
       sourceUrl: getFarpostListingUrl(item.url),
-      images: [...new Set(images)],
-      price: typeof item.price_rub === 'number' ? item.price_rub : undefined,
-      seller: seller ? { name: seller } : undefined,
+      images: image ? [image] : [],
+      price: typeof item.price_from_rub === 'number' ? item.price_from_rub : undefined,
     }
   })
 }
 
-export async function loadFarpostListings(limit: number, apiBase: string, signal: AbortSignal): Promise<TackleListing[]> {
-  if (!Number.isInteger(limit) || limit < 1 || limit > 50) throw new Error('Invalid Farpost limit')
-  const response = await fetch(`${apiBase.replace(/\/+$/, '')}/aggregator/farpost?limit=${limit}`, { signal, headers: { Accept: 'application/json' } })
-  if (!response.ok) throw new Error(`Farpost request failed: ${response.status}`)
-  return parseFarpostListings(await response.json())
+export async function loadTackleListings(limit: number, apiBase: string, signal: AbortSignal): Promise<TackleListing[]> {
+  if (!Number.isInteger(limit) || limit < 1 || limit > 100) throw new Error('Invalid tackle limit')
+  const response = await fetch(`${apiBase.replace(/\/+$/, '')}/tackle?limit=${limit}`, { signal, headers: { Accept: 'application/json' } })
+  if (!response.ok) throw new Error(`Tackle request failed: ${response.status}`)
+  return parseTackleListings(await response.json())
 }
