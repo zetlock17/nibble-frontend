@@ -1,7 +1,8 @@
 import { Fragment, useId, useState } from 'react'
 import fishIcon from '@/assets/icons/fishing/fish.svg'
 import pinIcon from '@/assets/icons/map/pin.svg'
-import heartIcon from '@/assets/icons/social/heart.svg'
+import heartFullIcon from '@/assets/icons/decorative/heart_full.svg'
+import heartLineIcon from '@/assets/icons/decorative/heart_line.svg'
 import commentIcon from '@/assets/icons/social/comment.svg'
 import externalIcon from '@/assets/icons/social/external.svg'
 import { Avatar } from '@/components/ui/avatar/Avatar'
@@ -87,13 +88,13 @@ export function PostCard({ post, referenceTime, liked, following, onLike, onFoll
 
       <footer className="flex flex-wrap items-center gap-x-4 gap-y-2">
         <button
-          className={`inline-flex min-h-11 items-center gap-1.5 rounded-pill border-0 bg-transparent px-0 py-1 text-lg leading-6 tabular-nums hover:text-focus sm:min-h-8 ${liked ? 'font-bold text-focus' : 'text-text-muted'}`}
+          className={`inline-flex min-h-11 items-center gap-1.5 rounded-pill border-0 bg-transparent px-0 py-1 text-lg leading-6 tabular-nums focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus sm:min-h-8 ${liked ? 'font-bold text-danger' : 'text-text-muted hover:text-focus'}`}
           type="button"
           aria-label={liked ? 'Убрать лайк' : 'Нравится'}
           aria-pressed={liked}
           onClick={onLike}
         >
-          <img className="size-5.5" src={heartIcon} alt="" />
+          <span aria-hidden="true" className="size-5.5 bg-current mask-contain mask-center mask-no-repeat" style={{ maskImage: `url("${liked ? heartFullIcon : heartLineIcon}")` }} />
           <span>{post.likesCount + Number(liked)}</span>
         </button>
         <span className="inline-flex min-h-8 items-center gap-1.5 text-lg leading-6 text-text-muted tabular-nums" aria-label={`Комментарии, ${post.commentsCount}`}>

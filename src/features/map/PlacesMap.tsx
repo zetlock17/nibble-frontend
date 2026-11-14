@@ -1,5 +1,6 @@
 import { FilterBar } from '@/components/ui/filter-bar/FilterBar'
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import fishermanImage from '@/assets/images/map/fisherman.png'
 import fishIcon from '@/assets/icons/fishing/fish.svg'
 import wavesIcon from '@/assets/icons/map/waves.svg'
@@ -7,7 +8,6 @@ import locationIcon from '@/assets/icons/map/location-arrow.svg'
 import plusIcon from '@/assets/icons/actions/plus.svg'
 import minusIcon from '@/assets/icons/actions/minus.svg'
 import rodIcon from '@/assets/icons/fishing/rod.svg'
-import pinIcon from '@/assets/icons/map/pin.svg'
 import { Button } from '@/components/ui/button/Button'
 import { IconButton } from '@/components/ui/button/IconButton'
 import { Select } from '@/components/ui/select/Select'
@@ -21,6 +21,7 @@ import { SpotDetails } from './SpotDetails'
 import { revealPlace } from './reveal-place'
 import { loadSpots } from './spots'
 import { createSpotMarkers } from './spot-markers'
+import { SpotMarker } from './SpotMarker'
 
 const apiKey = import.meta.env.VITE_YANDEX_MAPS_API_KEY?.trim()
 const apiBase = import.meta.env.VITE_API_BASE_URL?.trim() || '/api'
@@ -40,6 +41,7 @@ export function PlacesMap({ cityId, center }: { cityId: number; center: [number,
   const currentSpots = spotsResult?.cityId === cityId && spotsResult.attempt === spotsAttempt ? spotsResult : null
   const places = currentSpots?.status === 'ready' ? currentSpots.places : emptyPlaces
   const [markerError, setMarkerError] = useState(false)
+  const [markerContainers, setMarkerContainers] = useState<{ place: Place; element: HTMLDivElement }[]>([])
   const [status, setStatus] = useState<'loading' | 'missing-key' | 'ready' | 'error'>(apiKey ? 'loading' : 'missing-key')
   const [attempt, setAttempt] = useState(0)
   const [locating, setLocating] = useState(false)
@@ -83,7 +85,9 @@ export function PlacesMap({ cityId, center }: { cityId: number; center: [number,
     void Promise.resolve().then(() => {
       if (!active) return
       try {
-        removeMarkers = createSpotMarkers(map, api, places, selectedPlace?.id, selectPlace, pinIcon)
+        const result = createSpotMarkers(map, api, places, selectedPlace?.id)
+        removeMarkers = result.remove
+        setMarkerContainers(result.containers)
         setMarkerError(false)
       } catch {
         setMarkerError(true)
@@ -175,11 +179,11 @@ export function PlacesMap({ cityId, center }: { cityId: number; center: [number,
                   {status === 'error' && <Button onClick={() => { setStatus('loading'); setAttempt((value) => value + 1) }}>Повторить</Button>}
                 </div>
               )}
-              <button type="button" disabled={status !== 'ready'} onClick={depths.toggle} aria-pressed={depths.enabled} aria-label={depths.enabled ? 'Скрыть слой глубин' : 'Показать слой глубин'} className={`absolute top-3 left-3 inline-flex min-h-11 items-center gap-2 rounded-pill border px-3 py-2 text-xs text-text disabled:cursor-default disabled:opacity-50 ${depths.enabled ? 'border-focus bg-accent-soft' : 'border-navigation-divider bg-surface hover:bg-accent-soft'}`}>
-                <img className="size-4" src={wavesIcon} alt="" />
+              <button type="button" disabled={status !== 'ready'} onClick={depths.toggle} aria-pressed={depths.enabled} className={`absolute top-3 left-3 inline-flex min-h-11 items-center gap-2 rounded-pill border px-3 py-2 text-xs focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:cursor-default disabled:opacity-50 ${depths.enabled ? 'border-primary-strong bg-primary-strong text-surface hover:bg-primary-strong-hover' : 'border-navigation-divider bg-surface text-text hover:bg-accent-soft'}`}>
+                <img className={`size-4 ${depths.enabled ? 'invert' : ''}`} src={wavesIcon} alt="" />
                 {depths.status === 'loading' ? (
-                  <><span aria-hidden="true" className="size-3.5 animate-spin rounded-pill border-2 border-navigation-divider border-t-focus motion-reduce:animate-none" />Загружаем глубины…</>
-                ) : 'Слой глубин'}
+                  <><span aria-hidden="true" className="size-3.5 animate-spin rounded-pill border-2 border-surface/30 border-t-surface motion-reduce:animate-none" />Загружаем глубины…</>
+                ) : depths.enabled ? 'Скрыть глубины' : 'Показать глубины'}
               </button>
               <div className="sr-only" role="status">{depths.status === 'loading' ? 'Загружаем слой глубин.' : depths.status === 'ready' ? 'Слой глубин включён.' : ''}</div>
               {markerError && <p className="absolute right-3 bottom-3 left-3 m-0 rounded-2xl bg-surface p-3 text-sm text-text-muted" role="status">Не удалось показать метки. Выберите место в списке или перезагрузите страницу.</p>}
@@ -220,6 +224,7 @@ export function PlacesMap({ cityId, center }: { cityId: number; center: [number,
           </div>
         )}
       </div>
+      {status === 'ready' && markerContainers.map(({ place, element }) => createPortal(<SpotMarker name={place.name} selected={selectedPlace?.id === place.id} onSelect={() => selectPlace(place)} />, element, place.id))}
       <section className="mt-3 flex flex-col gap-5 pb-6" aria-labelledby="places-list-title">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 id="places-list-title" className="m-0 text-2xl leading-8 font-extrabold">Места для рыбалки</h2>

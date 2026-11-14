@@ -25,10 +25,15 @@ export function WeatherCard({ state, now, onRetry }: WeatherCardProps) {
     }
     return (
       <section className={`${cardClassName} flex min-h-44 items-center`} aria-label="Погода" aria-busy={state.status === 'loading'}>
-        <div role="status">
+        {state.status === 'loading' ? (
+          <div className="flex w-full justify-center" role="status">
+            <span aria-hidden="true" className="size-8 animate-spin rounded-full border-2 border-surface/30 border-t-surface motion-reduce:animate-none" />
+            <span className="sr-only">{messages.loading}</span>
+          </div>
+        ) : <div role="status">
           <p className="m-0 text-sm">{messages[state.status]}</p>
-          {state.status !== 'loading' && <button type="button" onClick={onRetry} className="mt-3 rounded-lg border border-surface bg-transparent px-3 py-1 text-sm text-surface focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-surface">Повторить</button>}
-        </div>
+          <button type="button" onClick={onRetry} className="mt-3 rounded-lg border border-surface bg-transparent px-3 py-1 text-sm text-surface focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-surface">Повторить</button>
+        </div>}
       </section>
     )
   }

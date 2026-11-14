@@ -64,8 +64,18 @@ test('карточки и лента рендерятся через Vite с н�
     assert.match(communityHtml, /<time dateTime=/)
     assert.match(communityHtml, /alt="Рыбак держит/)
     assert.match(communityHtml, /Бухта Новик/)
+    assert.match(communityHtml, /aria-pressed="false"/)
     assert.match(renderCard(communityPost, { liked: true, following: true }), /Вы подписаны/)
     assert.match(renderCard(communityPost, { liked: true }), /<span>4<\/span>/)
+    const likedHtml = renderCard(communityPost, { liked: true })
+    const heartMask = (html) => html.match(/mask-image:([^\"]+)/)?.[1]
+    assert.ok(heartMask(communityHtml))
+    assert.ok(heartMask(likedHtml))
+    assert.match(heartMask(communityHtml), /^url\(&quot;.*&quot;\)$/)
+    assert.match(heartMask(likedHtml), /^url\(&quot;.*&quot;\)$/)
+    assert.notEqual(heartMask(communityHtml), heartMask(likedHtml))
+    assert.match(renderCard(communityPost, { liked: true }), /text-danger/)
+    assert.match(renderCard(communityPost, { liked: true }), /aria-pressed="true"/)
     assert.doesNotMatch(renderCard(communityPost, { onFollow: undefined }), /Подписаться/)
 
     const telegramPost = feedMock.posts[2]

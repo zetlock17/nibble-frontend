@@ -67,19 +67,15 @@ function markerEnvironment() {
   return { map, api, attached }
 }
 
-test('markers select real spots, expose keyboard buttons, and detach on cleanup', () => {
+test('markers attach containers at real spot coordinates and detach on cleanup', () => {
   const { map, api, attached } = markerEnvironment()
   const place = parseSpot(spot)
-  let selected
-  const cleanup = createSpotMarkers(map, api, [place], place.id, (value) => { selected = value }, '/pin.svg')
+  const result = createSpotMarkers(map, api, [place], place.id)
   const marker = [...attached][0]
   assert.deepEqual(marker.props.coordinates, [131.940298, 43.029808])
   assert.ok(marker.props.zIndex > 100)
-  assert.equal(marker.element.type, 'button')
-  assert.equal(marker.element.attributes['aria-pressed'], 'true')
-  marker.element.click()
-  assert.equal(selected, place)
-  cleanup()
+  assert.deepEqual(result.containers, [{ place, element: marker.element }])
+  result.remove()
   assert.equal(attached.size, 0)
 })
 
@@ -93,6 +89,6 @@ test('removes already attached markers if SDK fails halfway through', () => {
       super(...args)
     }
   }
-  assert.throws(() => createSpotMarkers(map, api, [parseSpot(spot), parseSpot({ ...spot, id: 13 })], undefined, () => {}, '/pin.svg'), /SDK failed/)
+  assert.throws(() => createSpotMarkers(map, api, [parseSpot(spot), parseSpot({ ...spot, id: 13 })], undefined), /SDK failed/)
   assert.equal(attached.size, 0)
 })
