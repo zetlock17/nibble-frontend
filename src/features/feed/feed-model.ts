@@ -26,23 +26,6 @@ export type FeedState =
 
 export const initialFeedFilters: FeedFiltersValue = { source: 'all', placeId: '', fishId: '' }
 
-export function filterPosts(posts: readonly FeedPost[], filters: FeedFiltersValue) {
-  return posts.filter((post) => (
-    (filters.source === 'all' || post.source.type === filters.source)
-    && (!filters.placeId || post.place?.id === filters.placeId)
-    && (!filters.fishId || post.fish?.id === filters.fishId)
-  ))
-}
-
-export function getFeedOptions(posts: readonly FeedPost[], field: 'place' | 'fish') {
-  const entities = new Map<string, FeedEntity>()
-  for (const post of posts) {
-    const entity = post[field]
-    if (entity) entities.set(entity.id, entity)
-  }
-  return Array.from(entities.values(), ({ id, name }) => ({ value: id, label: name }))
-}
-
 export function formatPostDate(publishedAt: string | null, referenceTime: string) {
   if (!publishedAt || !Number.isFinite(Date.parse(publishedAt))) return 'Дата публикации неизвестна'
 

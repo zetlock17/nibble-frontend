@@ -2,22 +2,27 @@ import { useState, type ReactNode } from 'react'
 import { Button } from '@/components/ui/button/Button'
 import { FeedFilters } from './FeedFilters'
 import { PostCard } from './PostCard'
-import { filterPosts, getFeedOptions, initialFeedFilters } from './feed-model'
-import type { FeedState } from './feed-model'
+import { initialFeedFilters } from './feed-model'
+import type { FeedFiltersValue, FeedState } from './feed-model'
+import type { SelectOption } from '@/components/ui/select/Select'
 
 type FeedProps = {
   state: FeedState
   referenceTime: string
+  filters: FeedFiltersValue
+  onFiltersChange: (filters: FeedFiltersValue) => void
+  places: readonly SelectOption[]
+  fish: readonly SelectOption[]
+  more?: { hasMore: boolean; loading: boolean; error: boolean; onLoad: () => void }
+  onRetry?: () => void
   resources?: ReactNode
 }
 
-export function Feed({ state, referenceTime, resources }: FeedProps) {
-  const [filters, setFilters] = useState(initialFeedFilters)
+export function Feed({ state, referenceTime, filters, onFiltersChange, places, fish, more, onRetry, resources }: FeedProps) {
   const [likedPosts, setLikedPosts] = useState<string[]>([])
   const [followedAuthors, setFollowedAuthors] = useState<string[]>([])
   const posts = state.status === 'ready' ? state.posts : []
-  const filteredPosts = filterPosts(posts, filters)
-  const resetFilters = () => setFilters(initialFeedFilters)
+  const resetFilters = () => onFiltersChange(initialFeedFilters)
   const hasFilters = filters.source !== 'all' || Boolean(filters.placeId) || Boolean(filters.fishId)
 
   return (
@@ -25,15 +30,15 @@ export function Feed({ state, referenceTime, resources }: FeedProps) {
       <div aria-hidden="true" className="hidden h-8 shrink-0 sm:block" />
       <FeedFilters
         value={filters}
-        places={getFeedOptions(posts, 'place')}
-        fish={getFeedOptions(posts, 'fish')}
-        onChange={setFilters}
+        places={places}
+        fish={fish}
+        onChange={onFiltersChange}
         onReset={resetFilters}
       />
       {resources && <div className="shrink-0 py-2 2xl:hidden">{resources}</div>}
       <div className="flex shrink-0 flex-col gap-6" aria-busy={state.status === 'loading'}>
         {state.status === 'ready' ? (
-          filteredPosts.length > 0 ? filteredPosts.map((post) => (
+          posts.length > 0 ? posts.map((post) => (
             <PostCard
               key={post.id}
               post={post}
@@ -50,9 +55,16 @@ export function Feed({ state, referenceTime, resources }: FeedProps) {
             </div>
           )
         ) : (
-          <p className="m-0 rounded-4xl bg-surface p-6 text-sm text-text-muted" role="status">
-            {state.status === 'loading' ? 'Загружаем публикации…' : 'Не удалось загрузить ленту. Попробуйте обновить страницу.'}
-          </p>
+          <div className="rounded-4xl bg-surface p-6" role="status">
+            <p className="m-0 text-sm text-text-muted">{state.status === 'loading' ? 'Загружаем публикации…' : 'Не удалось загрузить ленту. Проверьте соединение и повторите.'}</p>
+            {state.status === 'error' && onRetry && <Button className="mt-4" variant="secondary" onClick={onRetry}>Повторить</Button>}
+          </div>
+        )}
+        {more?.hasMore && state.status === 'ready' && (
+          <div className="flex flex-col items-center gap-2 pb-6">
+            {more.error && <p className="m-0 text-sm text-text-muted" role="status">Не удалось загрузить следующие публикации.</p>}
+            <Button variant="secondary" disabled={more.loading} onClick={more.onLoad}>{more.loading ? 'Загружаем…' : more.error ? 'Повторить' : 'Показать ещё'}</Button>
+          </div>
         )}
       </div>
     </section>
