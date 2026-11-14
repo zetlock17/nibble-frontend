@@ -1,6 +1,9 @@
 export type Place = {
   id: string
   name: string
+  coordinates?: [number, number]
+  species?: readonly { id: string; name: string }[]
+  methods?: readonly string[]
   area?: string
   image?: string
   images?: readonly string[]

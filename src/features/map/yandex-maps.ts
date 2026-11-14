@@ -20,6 +20,7 @@ export type MapsApi = {
   YMapDefaultSchemeLayer: new () => object
   YMapDefaultFeaturesLayer: new () => object
   YMapFeature: new (props: MapFeatureProps) => object
+  YMapMarker: new (props: { coordinates: [number, number]; zIndex: number }, element: HTMLElement) => object
 }
 
 declare global {

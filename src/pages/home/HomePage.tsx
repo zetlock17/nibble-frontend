@@ -3,7 +3,6 @@ import { Sidebar } from '@/components/layout/sidebar/Sidebar'
 import type { Section } from '@/components/layout/sidebar/Sidebar'
 import { Feed } from '@/features/feed/Feed'
 import { PlacesMap } from '@/features/map/PlacesMap'
-import { placesMock } from '@/mocks/map/places'
 import { FishGuide } from '@/features/fish/FishGuide'
 import { TackleCatalog } from '@/features/tackle/TackleCatalog'
 import { tackleMock } from '@/mocks/tackle/listings'
@@ -51,7 +50,7 @@ export function HomePage({ section, onSectionChange }: HomePageProps) {
       {/* Размер контейнера нужен галерее, чтобы ограничить высоту доступной областью контента. */}
       <div ref={contentRef} className={`w-full min-w-0 max-sm:order-first max-sm:shrink-0 sm:h-full sm:overscroll-none sm:[container-type:size] sm:[scrollbar-width:none] sm:[&::-webkit-scrollbar]:hidden ${section === 'profile' || section === 'places' ? 'sm:overflow-y-auto' : 'sm:overflow-clip'} ${section === 'fish' || section === 'profile' || section === 'tackle' || section === 'places' ? 'sm:flex-1' : 'max-w-188'}`}>
         {(section === 'profile' || section === 'places') && <div aria-hidden="true" className="hidden h-10 sm:block" />}
-        {section === 'tackle' ? <TackleCatalog state={tackleMock} /> : section === 'profile' ? <ProfilePage profile={profileMock} state={{ status: 'ready', posts: profilePostsMock }} referenceTime={feedMockReferenceTime} photos={profilePhotosMock} /> : section === 'fish' ? <FishGuide fish={fishMock} /> : section === 'places' ? <PlacesMap places={placesMock} fish={fishMock} /> : <Feed state={feedMock} referenceTime={feedMockReferenceTime} resources={<HomeResources fish={fishMock} onOpenGuide={() => onSectionChange('fish')} />} />}
+        {section === 'tackle' ? <TackleCatalog state={tackleMock} /> : section === 'profile' ? <ProfilePage profile={profileMock} state={{ status: 'ready', posts: profilePostsMock }} referenceTime={feedMockReferenceTime} photos={profilePhotosMock} /> : section === 'fish' ? <FishGuide fish={fishMock} /> : section === 'places' ? <PlacesMap /> : <Feed state={feedMock} referenceTime={feedMockReferenceTime} resources={<HomeResources fish={fishMock} onOpenGuide={() => onSectionChange('fish')} />} />}
       </div>
       {section === 'home' && <div className="hidden min-w-64 flex-1 pt-10 2xl:block 2xl:h-full 2xl:min-h-0 2xl:overflow-hidden"><HomeResources fish={fishMock} onOpenGuide={() => onSectionChange('fish')} /></div>}
     </main>
