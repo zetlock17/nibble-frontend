@@ -40,6 +40,8 @@ jobs:
         with:
           context: .
           push: true
+          build-args: |
+            VITE_YANDEX_MAPS_API_KEY=${{ secrets.VITE_YANDEX_MAPS_API_KEY }}
           tags: |
             ghcr.io/zetlock17/nibble-frontend:latest
             ghcr.io/zetlock17/nibble-frontend:${{ github.sha }}
