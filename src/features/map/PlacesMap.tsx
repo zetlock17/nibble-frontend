@@ -27,7 +27,7 @@ const apiBase = import.meta.env.VITE_API_BASE_URL?.trim() || '/api'
 const emptyPlaces: readonly Place[] = []
 type SpotsResult = { cityId: number; attempt: number } & ({ status: 'ready'; places: Place[] } | { status: 'error' })
 
-export function PlacesMap({ cityId = 1 }: { cityId?: number }) {
+export function PlacesMap({ cityId, center }: { cityId: number; center: [number, number] }) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<MapInstance | null>(null)
   const apiRef = useRef<MapsApi | null>(null)
@@ -100,7 +100,7 @@ export function PlacesMap({ cityId = 1 }: { cityId?: number }) {
     loadYandexMaps(apiKey).then((api) => {
       if (cancelled || !containerRef.current) return
       map = new api.YMap(containerRef.current, {
-        location: { center: [131.8855, 43.1155], zoom: 10 },
+        location: { center, zoom: 10 },
         zoomRange: { min: 2, max: 21 },
       })
       mapRef.current = map
@@ -123,7 +123,7 @@ export function PlacesMap({ cityId = 1 }: { cityId?: number }) {
       mapRef.current = null
       apiRef.current = null
     }
-  }, [attempt])
+  }, [attempt, center])
 
   function changeZoom(delta: number) {
     const map = mapRef.current
