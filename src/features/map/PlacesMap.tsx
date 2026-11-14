@@ -1,5 +1,5 @@
 import { FilterBar } from '@/components/ui/filter-bar/FilterBar'
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import fishermanImage from '@/assets/images/map/fisherman.png'
 import fishIcon from '@/assets/icons/fishing/fish.svg'
 import wavesIcon from '@/assets/icons/map/waves.svg'
@@ -7,7 +7,7 @@ import locationIcon from '@/assets/icons/map/location-arrow.svg'
 import plusIcon from '@/assets/icons/actions/plus.svg'
 import minusIcon from '@/assets/icons/actions/minus.svg'
 import rodIcon from '@/assets/icons/fishing/rod.svg'
-import trashIcon from '@/assets/icons/actions/trash.svg'
+import pinIcon from '@/assets/icons/map/pin.svg'
 import { Button } from '@/components/ui/button/Button'
 import { IconButton } from '@/components/ui/button/IconButton'
 import { Select } from '@/components/ui/select/Select'
@@ -15,36 +15,82 @@ import { loadYandexMaps } from './yandex-maps'
 import type { MapInstance, MapsApi } from './yandex-maps'
 import { useDepthLayer } from './use-depth-layer'
 import { DepthLegend } from './DepthLegend'
-import type { Fish } from '@/features/fish/fish'
 import type { Place } from './place'
 import { PlaceCard } from './PlaceCard'
-import { PlaceDetails } from './PlaceDetails'
+import { SpotDetails } from './SpotDetails'
 import { revealPlace } from './reveal-place'
-import { filterPlaces, fishingLocations } from './filter-places'
+import { loadSpots } from './spots'
+import { createSpotMarkers } from './spot-markers'
 
 const apiKey = import.meta.env.VITE_YANDEX_MAPS_API_KEY?.trim()
+const apiBase = import.meta.env.VITE_API_BASE_URL?.trim() || '/api'
+const emptyPlaces: readonly Place[] = []
+type SpotsResult = { cityId: number; attempt: number } & ({ status: 'ready'; places: Place[] } | { status: 'error' })
 
-export function PlacesMap({ places, fish, cityId = 1 }: { places: readonly Place[]; fish: readonly Fish[]; cityId?: number }) {
+export function PlacesMap({ cityId = 1 }: { cityId?: number }) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<MapInstance | null>(null)
   const apiRef = useRef<MapsApi | null>(null)
   const overviewRef = useRef<HTMLElement>(null)
   const detailsRef = useRef<HTMLDivElement>(null)
-  const [selectedPlace, setSelectedPlace] = useState<Place | null>(null)
+  const [selection, setSelection] = useState<{ cityId: number; place: Place } | null>(null)
+  const selectedPlace = selection?.cityId === cityId ? selection.place : null
+  const [spotsResult, setSpotsResult] = useState<SpotsResult | null>(null)
+  const [spotsAttempt, setSpotsAttempt] = useState(0)
+  const currentSpots = spotsResult?.cityId === cityId && spotsResult.attempt === spotsAttempt ? spotsResult : null
+  const places = currentSpots?.status === 'ready' ? currentSpots.places : emptyPlaces
+  const [markerError, setMarkerError] = useState(false)
   const [status, setStatus] = useState<'loading' | 'missing-key' | 'ready' | 'error'>(apiKey ? 'loading' : 'missing-key')
   const [attempt, setAttempt] = useState(0)
   const [locating, setLocating] = useState(false)
   const [locationError, setLocationError] = useState('')
-  const [fishingFrom, setFishingFrom] = useState('')
-  const filteredPlaces = filterPlaces(places, fishingFrom)
-  const hasFilters = Boolean(fishingFrom)
   // Register depth cleanup before the effect that destroys its parent map.
   const depths = useDepthLayer(mapRef, apiRef, status === 'ready', cityId, attempt)
 
-  function resetFilters() {
-    setFishingFrom('')
-    setSelectedPlace(null)
-  }
+  const selectPlace = useCallback((place: Place) => {
+    setSelection({ cityId, place })
+    requestAnimationFrame(() => {
+      revealPlace(overviewRef.current, detailsRef.current, window.matchMedia('(prefers-reduced-motion: reduce)').matches)
+    })
+  }, [cityId])
+
+  useEffect(() => {
+    if (status === 'ready' && selectedPlace?.coordinates) mapRef.current?.setLocation({
+      center: selectedPlace.coordinates,
+      zoom: 14,
+      duration: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 300,
+    })
+  }, [selectedPlace, status, attempt])
+
+  useEffect(() => {
+    const controller = new AbortController()
+    const signal = AbortSignal.any([controller.signal, AbortSignal.timeout(20000)])
+    loadSpots(cityId, apiBase, signal).then((data) => {
+      if (!controller.signal.aborted) setSpotsResult({ cityId, attempt: spotsAttempt, status: 'ready', places: data })
+    }).catch(() => {
+      if (!controller.signal.aborted) setSpotsResult({ cityId, attempt: spotsAttempt, status: 'error' })
+    })
+    return () => controller.abort()
+  }, [cityId, spotsAttempt])
+
+  // Remove markers before destroying their parent map.
+  useEffect(() => {
+    const map = mapRef.current
+    const api = apiRef.current
+    if (status !== 'ready' || !map || !api) return
+    let active = true
+    let removeMarkers: (() => void) | undefined
+    void Promise.resolve().then(() => {
+      if (!active) return
+      try {
+        removeMarkers = createSpotMarkers(map, api, places, selectedPlace?.id, selectPlace, pinIcon)
+        setMarkerError(false)
+      } catch {
+        setMarkerError(true)
+      }
+    })
+    return () => { active = false; removeMarkers?.() }
+  }, [places, selectedPlace?.id, selectPlace, status, attempt])
 
   useEffect(() => {
     if (!apiKey) return
@@ -84,13 +130,6 @@ export function PlacesMap({ places, fish, cityId = 1 }: { places: readonly Place
     if (map) map.setLocation({ zoom: Math.min(21, Math.max(2, map.zoom + delta)) })
   }
 
-  function selectPlace(place: Place) {
-    setSelectedPlace(place)
-    requestAnimationFrame(() => {
-      revealPlace(overviewRef.current, detailsRef.current, window.matchMedia('(prefers-reduced-motion: reduce)').matches)
-    })
-  }
-
   function locate() {
     setLocationError('')
     if (!navigator.geolocation) {
@@ -117,8 +156,8 @@ export function PlacesMap({ places, fish, cityId = 1 }: { places: readonly Place
       <h1 id="places-title" className="m-0 text-3xl leading-tight font-extrabold sm:text-4xl">Карта мест</h1>
       <FilterBar className="flex flex-wrap items-center gap-3 pt-2">
         <Select label="Все виды рыб" icon={fishIcon} options={[]} value="" onChange={() => {}} disabled />
-        <Select label="Откуда ловить" icon={rodIcon} options={fishingLocations} value={fishingFrom} onChange={(value) => { setFishingFrom(value); setSelectedPlace(null) }} />
-        {hasFilters && <IconButton icon={trashIcon} label="Сбросить фильтры" iconClassName="size-4.5" className="size-11 bg-surface hover:bg-accent-soft" onClick={resetFilters} />}
+        <Select label="Откуда ловить" icon={rodIcon} options={[]} value="" onChange={() => {}} disabled />
+        <p className="m-0 text-xs text-text-muted">Фильтры мест пока недоступны.</p>
       </FilterBar>
       {/* Отдельная строка для легенды сохраняет высоту правой панели по карте. */}
       <div className="grid w-full grid-cols-1 items-start gap-8 xl:grid-cols-[minmax(0,--spacing(176))_minmax(--spacing(64),1fr)] xl:gap-y-0">
@@ -143,6 +182,7 @@ export function PlacesMap({ places, fish, cityId = 1 }: { places: readonly Place
                 ) : 'Слой глубин'}
               </button>
               <div className="sr-only" role="status">{depths.status === 'loading' ? 'Загружаем слой глубин.' : depths.status === 'ready' ? 'Слой глубин включён.' : ''}</div>
+              {markerError && <p className="absolute right-3 bottom-3 left-3 m-0 rounded-2xl bg-surface p-3 text-sm text-text-muted" role="status">Не удалось показать метки. Выберите место в списке или перезагрузите страницу.</p>}
               {(depths.status === 'error' || depths.status === 'empty') && (
                 <div className="absolute right-3 bottom-8 left-3 max-w-96 rounded-2xl bg-surface p-4 text-sm leading-5 text-text-muted" role="status">
                   <p className="m-0">{depths.status === 'error'
@@ -169,7 +209,7 @@ export function PlacesMap({ places, fish, cityId = 1 }: { places: readonly Place
         </div>
         {selectedPlace ? (
           <div ref={detailsRef} tabIndex={-1} aria-label={`Подробности места: ${selectedPlace.name}`} className="relative w-full min-w-0 self-stretch xl:col-start-2 xl:row-start-1">
-            <PlaceDetails key={selectedPlace.id} place={selectedPlace} fish={fish} />
+            <SpotDetails key={`${cityId}:${selectedPlace.id}`} place={selectedPlace} />
           </div>
         ) : (
           <div className="relative min-w-0 self-stretch xl:col-start-2 xl:row-start-1">
@@ -181,15 +221,22 @@ export function PlacesMap({ places, fish, cityId = 1 }: { places: readonly Place
         )}
       </div>
       <section className="mt-3 flex flex-col gap-5 pb-6" aria-labelledby="places-list-title">
-        <h2 id="places-list-title" className="m-0 text-2xl leading-8 font-extrabold">Места для рыбалки</h2>
-        {filteredPlaces.length ? (
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 id="places-list-title" className="m-0 text-2xl leading-8 font-extrabold">Места для рыбалки</h2>
+          <Button variant="secondary" disabled={!currentSpots} onClick={() => { setSelection(null); setSpotsAttempt((value) => value + 1) }}>Обновить места</Button>
+        </div>
+        {!currentSpots ? <p className="m-0 text-sm text-text-muted" role="status">Загружаем места…</p> : currentSpots.status === 'error' ? (
+          <div className="flex flex-col items-start gap-3 rounded-3xl bg-surface p-6" role="alert">
+            <p className="m-0 text-sm text-text-muted">Не удалось загрузить места. Проверьте подключение и попробуйте ещё раз.</p>
+            <Button onClick={() => setSpotsAttempt((value) => value + 1)}>Повторить</Button>
+          </div>
+        ) : places.length ? (
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-            {filteredPlaces.map((place) => <PlaceCard key={place.id} place={place} fish={fish} onSelect={selectPlace} />)}
+            {places.map((place) => <PlaceCard key={place.id} place={place} onSelect={selectPlace} />)}
           </div>
         ) : (
           <div className="flex flex-col items-start gap-3 rounded-3xl bg-surface p-6" role="status">
-            <p className="m-0 text-sm text-text-muted">{hasFilters ? 'Подходящих мест нет. Измените, откуда хотите ловить, или сбросьте фильтр.' : 'Мест пока нет. Загляните позже.'}</p>
-            {hasFilters && <Button variant="secondary" onClick={resetFilters}>Сбросить фильтры</Button>}
+            <p className="m-0 text-sm text-text-muted">Мест пока нет. Загляните позже.</p>
           </div>
         )}
       </section>
