@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { RefObject } from 'react'
-import type { MapInstance, MapsApi } from './yandex-maps'
+import type { LeafletApi, MapInstance } from './leaflet-map'
 import { createDepthLayer, depthPalette, loadDepths } from './depths'
 import type { Depths } from './depths'
 
@@ -11,7 +11,7 @@ type Result = { cityId: number; attempt: number } & (
   | { status: 'empty' | 'error' }
 )
 
-export function useDepthLayer(mapRef: RefObject<MapInstance | null>, apiRef: RefObject<MapsApi | null>, ready: boolean, cityId: number, attempt: number) {
+export function useDepthLayer(mapRef: RefObject<MapInstance | null>, apiRef: RefObject<LeafletApi | null>, ready: boolean, cityId: number, attempt: number) {
   const [enabled, setEnabled] = useState(false)
   const [result, setResult] = useState<Result | null>(null)
   const [reload, setReload] = useState(0)
@@ -24,7 +24,7 @@ export function useDepthLayer(mapRef: RefObject<MapInstance | null>, apiRef: Ref
     const controller = new AbortController()
     let activeLayer: ReturnType<typeof createDepthLayer> | undefined
 
-    async function show(map: MapInstance, api: MapsApi) {
+    async function show(map: MapInstance, api: LeafletApi) {
       try {
         await Promise.resolve()
         if (controller.signal.aborted) return

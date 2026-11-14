@@ -1,8 +1,9 @@
 import type { Place } from './place.ts'
-import type { MapInstance, MapsApi } from './yandex-maps.ts'
+import type { LeafletApi, MapInstance } from './leaflet-map.ts'
+import { toLatLng } from './leaflet-map.ts'
 
-export function createSpotMarkers(map: MapInstance, api: MapsApi, places: readonly Place[], selectedId: string | undefined, onSelect: (place: Place) => void, icon: string) {
-  const markers: object[] = []
+export function createSpotMarkers(map: MapInstance, api: LeafletApi, places: readonly Place[], selectedId: string | undefined, onSelect: (place: Place) => void, icon: string) {
+  const markers: ReturnType<LeafletApi['marker']>[] = []
   try {
     for (const place of places) {
       if (!place.coordinates) continue
@@ -19,13 +20,18 @@ export function createSpotMarkers(map: MapInstance, api: MapsApi, places: readon
       image.className = 'size-6 brightness-0 invert'
       button.append(image)
       button.addEventListener('click', () => onSelect(place))
-      const marker = new api.YMapMarker({ coordinates: place.coordinates, zIndex: selected ? 300 : 200 }, button)
-      map.addChild(marker)
+      // Нулевой размер иконки: кнопка привязывается к точке собственными классами translate.
+      const marker = api.marker(toLatLng(place.coordinates), {
+        icon: api.divIcon({ html: button, className: '', iconSize: [0, 0] }),
+        keyboard: false,
+        zIndexOffset: selected ? 1000 : 0,
+      })
+      marker.addTo(map)
       markers.push(marker)
     }
   } catch (error) {
-    for (const marker of markers) map.removeChild(marker)
+    for (const marker of markers) marker.remove()
     throw error
   }
-  return () => { for (const marker of markers) map.removeChild(marker) }
+  return () => { for (const marker of markers) marker.remove() }
 }

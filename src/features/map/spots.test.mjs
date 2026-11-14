@@ -62,8 +62,15 @@ function markerEnvironment() {
     },
   }
   const attached = new Set()
-  const map = { addChild(marker) { attached.add(marker) }, removeChild(marker) { assert.ok(attached.delete(marker)) } }
-  const api = { YMapMarker: class { constructor(props, element) { this.props = props; this.element = element } } }
+  const map = {}
+  const api = {
+    divIcon: (options) => options,
+    marker: (latlng, options) => ({
+      latlng, options,
+      addTo() { attached.add(this); return this },
+      remove() { assert.ok(attached.delete(this)) },
+    }),
+  }
   return { map, api, attached }
 }
 
@@ -73,25 +80,24 @@ test('markers select real spots, expose keyboard buttons, and detach on cleanup'
   let selected
   const cleanup = createSpotMarkers(map, api, [place], place.id, (value) => { selected = value }, '/pin.svg')
   const marker = [...attached][0]
-  assert.deepEqual(marker.props.coordinates, [131.940298, 43.029808])
-  assert.ok(marker.props.zIndex > 100)
-  assert.equal(marker.element.type, 'button')
-  assert.equal(marker.element.attributes['aria-pressed'], 'true')
-  marker.element.click()
+  assert.deepEqual(marker.latlng, [43.029808, 131.940298])
+  assert.ok(marker.options.zIndexOffset > 0)
+  const element = marker.options.icon.html
+  assert.equal(element.type, 'button')
+  assert.equal(element.attributes['aria-pressed'], 'true')
+  element.click()
   assert.equal(selected, place)
   cleanup()
   assert.equal(attached.size, 0)
 })
 
-test('removes already attached markers if SDK fails halfway through', () => {
+test('removes already attached markers if the map library fails halfway through', () => {
   const { map, api, attached } = markerEnvironment()
-  const Marker = api.YMapMarker
+  const createMarker = api.marker
   let created = 0
-  api.YMapMarker = class extends Marker {
-    constructor(...args) {
-      if (++created === 2) throw new Error('SDK failed')
-      super(...args)
-    }
+  api.marker = (...args) => {
+    if (++created === 2) throw new Error('SDK failed')
+    return createMarker(...args)
   }
   assert.throws(() => createSpotMarkers(map, api, [parseSpot(spot), parseSpot({ ...spot, id: 13 })], undefined, () => {}, '/pin.svg'), /SDK failed/)
   assert.equal(attached.size, 0)
