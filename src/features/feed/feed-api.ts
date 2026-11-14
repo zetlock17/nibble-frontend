@@ -1,6 +1,7 @@
 import type { SelectOption } from '@/components/ui/select/Select'
-import { authFetch, getInitials } from '../auth/auth-api.ts'
-import type { FeedFiltersValue, FeedPost } from './feed-model'
+import { authFetch } from '../auth/authed-fetch.ts'
+import { getInitials } from './feed-model.ts'
+import type { FeedFiltersValue, FeedPost } from './feed-model.ts'
 
 export type FeedPage = { posts: FeedPost[]; nextCursor: string | null }
 

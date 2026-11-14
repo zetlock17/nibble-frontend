@@ -1,26 +1,26 @@
 import { useEffect, useState } from 'react'
-import { authFetch, getInitials } from '@/features/auth/auth-api'
+import { authFetch } from '@/features/auth/authed-fetch'
 import { loadAuthorPosts } from '@/features/feed/feed-api'
+import { getInitials } from '@/features/feed/feed-model'
 import type { FeedPost, FeedState } from '@/features/feed/feed-model'
 import { useReactions } from '@/features/feed/use-reactions'
 import { profileMock } from '@/mocks/profile/profile'
 import { ProfilePage } from './ProfilePage'
 import type { ProfileView } from './ProfilePage'
 
-type ProfileUser = { id?: number; name: string; initials: string; city: string }
+type ProfileUser = { id: number; name: string; initials: string; city: string; bio?: string | null; avatarUrl?: string | null }
 type Loaded = { userId: number; attempt: number } & ({ profile: ProfileView; posts: FeedPost[] } | { error: true })
 
-// Профиль и публикации текущего пользователя из API. Без id (вход ещё не подключён) показывает пустой профиль.
-export function ProfileSection({ user, onAddCatch, onSignOut }: { user: ProfileUser; onAddCatch: () => void; onSignOut: () => void }) {
+// Профиль и публикации текущего пользователя из API.
+export function ProfileSection({ user, signingOut, onAddCatch, onSignOut }: { user: ProfileUser; signingOut: boolean; onAddCatch: () => void; onSignOut: () => void }) {
   const [attempt, setAttempt] = useState(0)
   const [result, setResult] = useState<Loaded | null>(null)
   const [referenceTime] = useState(() => new Date().toISOString())
   const reactions = useReactions(true, () => {})
   const userId = user.id
-  const current = userId !== undefined && result?.userId === userId && result.attempt === attempt ? result : null
+  const current = result?.userId === userId && result.attempt === attempt ? result : null
 
   useEffect(() => {
-    if (userId === undefined) return
     const controller = new AbortController()
     const signal = AbortSignal.any([controller.signal, AbortSignal.timeout(20000)])
     Promise.all([
@@ -45,11 +45,10 @@ export function ProfileSection({ user, onAddCatch, onSignOut }: { user: ProfileU
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId, attempt])
 
-  const fallback: ProfileView = { name: user.name, initials: user.initials, city: user.city, bio: '', followersCount: 0, cover: profileMock.cover }
+  const fallback: ProfileView = { name: user.name, initials: user.initials, city: user.city, bio: user.bio ?? '', avatarUrl: user.avatarUrl ?? undefined, followersCount: 0, cover: profileMock.cover }
   const profile = current && !('error' in current) ? current.profile : fallback
-  const state: FeedState = userId === undefined ? { status: 'ready', posts: [] }
-    : !current ? { status: 'loading' } : 'error' in current ? { status: 'error' } : { status: 'ready', posts: current.posts }
+  const state: FeedState = !current ? { status: 'loading' } : 'error' in current ? { status: 'error' } : { status: 'ready', posts: current.posts }
   const photos = state.status === 'ready' ? state.posts.flatMap((post) => post.image ? [{ id: post.id, src: post.image.src, alt: post.image.alt }] : []) : []
 
-  return <ProfilePage profile={profile} state={state} referenceTime={referenceTime} photos={photos} reactions={reactions} onRetry={() => { setResult(null); setAttempt((value) => value + 1) }} onAddCatch={onAddCatch} onSignOut={onSignOut} />
+  return <ProfilePage profile={profile} state={state} referenceTime={referenceTime} photos={photos} reactions={reactions} signingOut={signingOut} onRetry={() => { setResult(null); setAttempt((value) => value + 1) }} onAddCatch={onAddCatch} onSignOut={onSignOut} />
 }

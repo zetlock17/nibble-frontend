@@ -30,13 +30,14 @@ type ProfilePageProps = {
   onRetry?: () => void
   onAddCatch: () => void
   onSignOut: () => void
+  signingOut: boolean
 }
 
 const postLabels = { one: 'пост', few: 'поста', many: 'постов', other: 'поста' }
 const followerLabels = { one: 'подписчик', few: 'подписчика', many: 'подписчиков', other: 'подписчика' }
 const pluralRules = new Intl.PluralRules('ru')
 
-export function ProfilePage({ profile, state, referenceTime, photos, reactions, onRetry, onAddCatch, onSignOut }: ProfilePageProps) {
+export function ProfilePage({ profile, state, referenceTime, photos, reactions, onRetry, onAddCatch, onSignOut, signingOut }: ProfilePageProps) {
   const [failedCover, setFailedCover] = useState<string>()
   const posts = state.status === 'ready' ? state.posts : []
 
@@ -58,8 +59,8 @@ export function ProfilePage({ profile, state, referenceTime, photos, reactions, 
               <Button variant="dark" size="md" aria-disabled="true" title="Редактирование профиля пока недоступно">
                 <img className="size-5" src={editIcon} alt="" />Редактировать профиль
               </Button>
-              <Button variant="danger" size="md" onClick={onSignOut}>
-                <img className="size-5 brightness-0 invert" src={logoutIcon} alt="" />Выйти из аккаунта
+              <Button variant="danger" size="md" disabled={signingOut} onClick={onSignOut}>
+                <img className="size-5 brightness-0 invert" src={logoutIcon} alt="" />{signingOut ? 'Выходим…' : 'Выйти из аккаунта'}
               </Button>
             </div>
           </div>

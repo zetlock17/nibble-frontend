@@ -1,3 +1,5 @@
+export const getInitials = (name: string) => name.split(/\s+/).filter(Boolean).slice(0, 2).map((word) => word[0].toLocaleUpperCase('ru')).join('') || '?'
+
 export type FeedEntity = { id: string; name: string }
 
 export type FeedPost = {

@@ -1,4 +1,4 @@
-import { authFetch } from '@/features/auth/auth-api'
+import { authFetch } from '@/features/auth/authed-fetch'
 
 export const setLike = (postId: string, liked: boolean) => authFetch(`/posts/${postId}/like`, { method: liked ? 'POST' : 'DELETE' })
 export const setFollow = (userId: string, follow: boolean) => authFetch(`/users/${userId}/follow`, { method: follow ? 'PUT' : 'DELETE' })

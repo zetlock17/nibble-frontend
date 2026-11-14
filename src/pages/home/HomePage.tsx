@@ -7,7 +7,7 @@ import { FishGuide } from '@/features/fish/FishGuide'
 import { TackleSection } from '@/features/tackle/TackleSection'
 import { useFish } from '@/features/fish/use-fish'
 import { ProfileSection } from '@/pages/profile/ProfileSection'
-import type { AuthUser } from '@/pages/auth/AuthPage'
+import type { AuthUser } from '@/features/auth/auth-api'
 import { scrollPageFromWheel } from './wheel-scroll'
 import { HomeResources } from './HomeResources'
 import { AddCatchPage } from '@/pages/add-catch/AddCatchPage'
@@ -22,12 +22,13 @@ type HomePageProps = {
   onSectionChange: (section: Section) => void
   onAddCatch: () => void
   catchOrigin: 'home' | 'profile'
-  user: AuthUser | null
-  onSignOut: () => void
+  user: (AuthUser & { city: string }) | null
+  signingOut: boolean
   onRequireAuth: () => void
+  onSignOut: () => void
 }
 
-export function HomePage({ city, section, onSectionChange, onAddCatch, catchOrigin, user, onSignOut, onRequireAuth, searchNavigation }: HomePageProps) {
+export function HomePage({ city, section, onSectionChange, onAddCatch, catchOrigin, user, signingOut, onSignOut, onRequireAuth, searchNavigation }: HomePageProps) {
   const fish = useFish()
   const isArticle = section === 'article-knots' || section === 'article-fish'
   const mainRef = useRef<HTMLElement>(null)
@@ -66,8 +67,8 @@ export function HomePage({ city, section, onSectionChange, onAddCatch, catchOrig
       <div ref={contentRef} className={`w-full min-w-0 max-sm:order-first max-sm:shrink-0 sm:h-full sm:overscroll-none sm:[container-type:size] sm:[scrollbar-width:none] sm:[&::-webkit-scrollbar]:hidden ${isArticle || section === 'profile' || section === 'places' || section === 'add-catch' ? 'sm:overflow-y-auto' : 'sm:overflow-clip'} ${isArticle || section === 'fish' || section === 'profile' || section === 'tackle' || section === 'places' || section === 'add-catch' ? 'sm:flex-1' : 'max-w-188'}`}>
         {(isArticle || section === 'profile' || section === 'places' || section === 'add-catch') && <div aria-hidden="true" className="hidden h-10 sm:block" />}
         {/* Не размонтируем форму: черновик и фото живут до закрытия вкладки. */}
-        <div hidden={section !== 'add-catch'}><AddCatchPage fish={fish} city={city} origin={catchOrigin} signedIn={user?.id !== undefined} onRequireAuth={onRequireAuth} onPublished={() => onSectionChange('home')} active={section === 'add-catch'} onBack={() => onSectionChange(catchOrigin)} /></div>
-        {section === 'add-catch' ? null : isArticle ? <ArticlePage key={section} article={section} onBack={() => onSectionChange('home')} /> : section === 'tackle' ? <TackleSection /> : section === 'profile' ? <ProfileSection user={{ id: user?.id, name: user?.name ?? 'Рыбак', initials: user?.initials ?? 'Р', city: user?.city ?? '' }} onAddCatch={onAddCatch} onSignOut={onSignOut} /> : section === 'fish' ? <FishGuide key={`fish-${searchNavigation?.revision ?? 0}`} initialSpeciesId={searchNavigation?.target.kind === 'species' ? searchNavigation.target.id : undefined} /> : section === 'places' ? city ? <PlacesMap key={`${city.id}:${searchNavigation?.revision ?? 0}`} initialPlace={searchNavigation?.target.kind === 'spot' ? searchNavigation.target.place : undefined} cityId={city.id} cityName={city.name} center={city.coordinates} /> : <p role="status">Выберите город, чтобы посмотреть места.</p> : city ? <LiveFeed key={city.id} cityId={city.id} userId={user?.id} onRequireAuth={onRequireAuth} resources={<HomeResources fish={fish} onOpenGuide={() => onSectionChange('fish')} onOpenArticle={onSectionChange} />} /> : <p role="status">Выберите город, чтобы посмотреть ленту.</p>}
+        {user && <div key={user.id} hidden={section !== 'add-catch'}><AddCatchPage fish={fish} city={city} origin={catchOrigin} signedIn onRequireAuth={onRequireAuth} onPublished={() => onSectionChange('home')} active={section === 'add-catch'} onBack={() => onSectionChange(catchOrigin)} /></div>}
+        {section === 'add-catch' ? null : isArticle ? <ArticlePage key={section} article={section} onBack={() => onSectionChange('home')} /> : section === 'tackle' ? <TackleSection /> : section === 'profile' ? user ? <ProfileSection user={user} signingOut={signingOut} onAddCatch={onAddCatch} onSignOut={onSignOut} /> : null : section === 'fish' ? <FishGuide key={`fish-${searchNavigation?.revision ?? 0}`} initialSpeciesId={searchNavigation?.target.kind === 'species' ? searchNavigation.target.id : undefined} /> : section === 'places' ? city ? <PlacesMap key={`${city.id}:${searchNavigation?.revision ?? 0}`} initialPlace={searchNavigation?.target.kind === 'spot' ? searchNavigation.target.place : undefined} cityId={city.id} cityName={city.name} center={city.coordinates} /> : <p role="status">Выберите город, чтобы посмотреть места.</p> : city ? <LiveFeed key={city.id} cityId={city.id} userId={user?.id} onRequireAuth={onRequireAuth} resources={<HomeResources fish={fish} onOpenGuide={() => onSectionChange('fish')} onOpenArticle={onSectionChange} />} /> : <p role="status">Выберите город, чтобы посмотреть ленту.</p>}
       </div>
       {section === 'home' && <div className="hidden min-w-64 flex-1 pt-10 2xl:block 2xl:h-full 2xl:min-h-0 2xl:overflow-hidden"><HomeResources fish={fish} onOpenGuide={() => onSectionChange('fish')} onOpenArticle={onSectionChange} /></div>}
     </main>
