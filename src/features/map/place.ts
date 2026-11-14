@@ -5,6 +5,7 @@ export type Place = {
   species?: readonly { id: string; name: string }[]
   methods?: readonly string[]
   area?: string
+  aliases?: readonly string[]
   image?: string
   images?: readonly string[]
   description?: string

@@ -22,17 +22,21 @@ import { revealPlace } from './reveal-place'
 import { loadSpots } from './spots'
 import { createSpotMarkers } from './spot-markers'
 import { SpotMarker } from './SpotMarker'
+import { PlacePage } from './PlacePage'
 
 const apiBase = import.meta.env.VITE_API_BASE_URL?.trim() || '/api'
 const emptyPlaces: readonly Place[] = []
 type SpotsResult = { cityId: number; attempt: number } & ({ status: 'ready'; places: Place[] } | { status: 'error' })
 
-export function PlacesMap({ cityId, center }: { cityId: number; center: [number, number] }) {
+export function PlacesMap({ cityId, cityName, center }: { cityId: number; cityName: string; center: [number, number] }) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<MapInstance | null>(null)
   const apiRef = useRef<LeafletApi | null>(null)
   const overviewRef = useRef<HTMLElement>(null)
   const detailsRef = useRef<HTMLDivElement>(null)
+  const returnFocusRef = useRef<HTMLElement | null>(null)
+  const scrollPositionsRef = useRef({ content: 0, main: 0 })
+  const [openPlace, setOpenPlace] = useState<Place | null>(null)
   const [selection, setSelection] = useState<{ cityId: number; place: Place } | null>(null)
   const selectedPlace = selection?.cityId === cityId ? selection.place : null
   const [spotsResult, setSpotsResult] = useState<SpotsResult | null>(null)
@@ -126,6 +130,31 @@ export function PlacesMap({ cityId, center }: { cityId: number; center: [number,
     if (map) map.setZoom(Math.min(maxZoom, Math.max(minZoom, map.getZoom() + delta)))
   }
 
+  function openPlacePage(place: Place) {
+    const overview = overviewRef.current
+    const content = overview?.parentElement
+    const main = overview?.closest('main')
+    returnFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null
+    scrollPositionsRef.current = { content: content?.scrollTop ?? 0, main: main?.scrollTop ?? 0 }
+    setOpenPlace(place)
+    content?.scrollTo({ top: 0 })
+    main?.scrollTo({ top: 0 })
+  }
+
+  function closePlacePage(placeToShow?: Place) {
+    setOpenPlace(null)
+    requestAnimationFrame(() => {
+      mapRef.current?.invalidateSize({ animate: false })
+      if (placeToShow) {
+        selectPlace(placeToShow)
+      } else {
+        overviewRef.current?.parentElement?.scrollTo({ top: scrollPositionsRef.current.content })
+        overviewRef.current?.closest('main')?.scrollTo({ top: scrollPositionsRef.current.main })
+        returnFocusRef.current?.focus({ preventScroll: true })
+      }
+    })
+  }
+
   function locate() {
     setLocationError('')
     if (!navigator.geolocation) {
@@ -148,7 +177,9 @@ export function PlacesMap({ cityId, center }: { cityId: number; center: [number,
   }
 
   return (
-    <section ref={overviewRef} className="flex w-full min-w-0 flex-col gap-4" aria-labelledby="places-title">
+    <>
+    {openPlace && <PlacePage key={openPlace.id} place={openPlace} cityName={cityName} onBack={() => closePlacePage()} onMap={closePlacePage} />}
+    <section ref={overviewRef} className={openPlace ? 'hidden' : 'flex w-full min-w-0 flex-col gap-4'} aria-labelledby="places-title">
       <h1 id="places-title" className="m-0 text-3xl leading-tight font-extrabold sm:text-4xl">Карта мест</h1>
       <FilterBar className="flex flex-wrap items-center gap-3 pt-2">
         <Select label="Все виды рыб" icon={fishIcon} options={[]} value="" onChange={() => {}} disabled />
@@ -203,7 +234,7 @@ export function PlacesMap({ cityId, center }: { cityId: number; center: [number,
         </div>
         {selectedPlace ? (
           <div ref={detailsRef} tabIndex={-1} aria-label={`Подробности места: ${selectedPlace.name}`} className="relative w-full min-w-0 self-stretch xl:col-start-2 xl:row-start-1">
-            <SpotDetails key={`${cityId}:${selectedPlace.id}`} place={selectedPlace} />
+            <SpotDetails key={`${cityId}:${selectedPlace.id}`} place={selectedPlace} onOpen={openPlacePage} />
           </div>
         ) : (
           <div className="relative min-w-0 self-stretch xl:col-start-2 xl:row-start-1">
@@ -227,7 +258,7 @@ export function PlacesMap({ cityId, center }: { cityId: number; center: [number,
           </div>
         ) : places.length ? (
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-            {places.map((place) => <PlaceCard key={place.id} place={place} onSelect={selectPlace} />)}
+            {places.map((place) => <PlaceCard key={place.id} place={place} onSelect={selectPlace} onOpen={openPlacePage} />)}
           </div>
         ) : (
           <div className="flex flex-col items-start gap-3 rounded-3xl bg-surface p-6" role="status">
@@ -236,5 +267,6 @@ export function PlacesMap({ cityId, center }: { cityId: number; center: [number,
         )}
       </section>
     </section>
+    </>
   )
 }

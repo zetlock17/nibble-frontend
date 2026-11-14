@@ -5,14 +5,15 @@ import { Badge } from '@/components/ui/badge/Badge'
 import { Button } from '@/components/ui/button/Button'
 import type { Place } from './place'
 
-export function PlaceCard({ place, onSelect }: { place: Place; onSelect: (place: Place) => void }) {
+export function PlaceCard({ place, onSelect, onOpen }: { place: Place; onSelect: (place: Place) => void; onOpen: (place: Place) => void }) {
   const [failedImage, setFailedImage] = useState<string>()
   const knownFish = place.species ?? []
   const hiddenFish = knownFish.slice(2)
 
   return (
     <article className="flex min-w-0 flex-col gap-4 rounded-3xl bg-surface p-3 lg:p-4">
-      <div className="flex aspect-3/2 items-center justify-center overflow-hidden rounded-2xl bg-accent-soft">
+      <button type="button" onClick={() => onOpen(place)} aria-label={`Подробнее: ${place.name}`} className="flex min-w-0 cursor-pointer flex-col gap-4 rounded-2xl border-0 bg-transparent p-0 text-left text-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus">
+      <div className="flex aspect-3/2 w-full items-center justify-center overflow-hidden rounded-2xl bg-accent-soft">
         {place.image && failedImage !== place.image ? (
           <img src={place.image} alt={`Место для рыбалки «${place.name}»`} loading="lazy" className="size-full object-cover" onError={() => setFailedImage(place.image)} />
         ) : <span className="px-4 text-sm text-text-muted">Фото пока нет</span>}
@@ -34,9 +35,10 @@ export function PlaceCard({ place, onSelect }: { place: Place; onSelect: (place:
         )}
       </div>
       <p className="m-0 text-sm leading-6 text-text-muted">{place.description || 'Откройте место, чтобы посмотреть подробности.'}</p>
+      </button>
       <div className="mt-auto flex flex-wrap gap-2">
         <Button variant="strong" onClick={() => onSelect(place)}>Показать на карте</Button>
-        <Button variant="secondary" onClick={() => onSelect(place)}>Подробнее</Button>
+        <Button variant="secondary" onClick={() => onOpen(place)}>Подробнее</Button>
       </div>
     </article>
   )

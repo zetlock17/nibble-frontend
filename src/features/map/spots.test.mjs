@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { afterEach, test } from 'node:test'
-import { loadSpotDetails, loadSpots, parseSpot, parseSpotDetails } from './spots.ts'
+import { loadSpotDetails, loadSpots, parseSpot, parseSpotDetails, spotDescriptionParagraphs } from './spots.ts'
 import { createSpotMarkers } from './spot-markers.ts'
 
 const originalFetch = globalThis.fetch
@@ -10,6 +10,11 @@ afterEach(() => { globalThis.fetch = originalFetch; globalThis.document = origin
 const spot = { id: 12, city_id: 1, name: 'Бухта Аякс', area: null, lat: '43.029808', lon: '131.940298', photo_url: null }
 const details = { ...spot, description: 'Описание места', species: [{ id: 4, name: 'Камбала', image_url: '/fish.png' }], methods: [{ id: 3, name: 'Донная' }] }
 
+test('сохраняет абзацы описания без лишних пустых строк', () => {
+  assert.deepEqual(spotDescriptionParagraphs(' Первая строка\r\nпродолжение\r\n\r\n  \r\n\r\nВторой абзац '), ['Первая строка\nпродолжение', 'Второй абзац'])
+  assert.deepEqual(spotDescriptionParagraphs('\n  \n'), [])
+})
+
 test('converts decimal coordinates to longitude/latitude and keeps backend species IDs', () => {
   const parsed = parseSpotDetails(details)
   assert.deepEqual(parsed.coordinates, [131.940298, 43.029808])
@@ -17,6 +22,8 @@ test('converts decimal coordinates to longitude/latitude and keeps backend speci
   assert.deepEqual(parsed.methods, ['Донная'])
   assert.equal(parsed.image, undefined)
   assert.equal(parsed.description, 'Описание места')
+  assert.deepEqual(parseSpotDetails({ ...details, aliases: [' Аякс '] }).aliases, ['Аякс'])
+  assert.equal(parseSpotDetails(details).aliases, undefined)
 })
 
 test('rejects malformed API data instead of inventing coordinates or using mock records', () => {
@@ -25,6 +32,7 @@ test('rejects malformed API data instead of inventing coordinates or using mock 
   }
   assert.throws(() => parseSpotDetails({ ...details, species: [{ name: 'Камбала' }] }))
   assert.throws(() => parseSpotDetails({ ...details, methods: null }))
+  assert.throws(() => parseSpotDetails({ ...details, aliases: [123] }))
 })
 
 test('loads list and details separately, passes cancellation, and checks HTTP failures', async () => {
