@@ -11,6 +11,8 @@ import rodIcon from '@/assets/icons/fishing/rod.svg'
 import { Button } from '@/components/ui/button/Button'
 import { IconButton } from '@/components/ui/button/IconButton'
 import { Select } from '@/components/ui/select/Select'
+import { noSpotFilters, useFilterOptions } from './spot-filters'
+import type { SpotFilters } from './spot-filters'
 import { createMap, flyTo, loadLeaflet, maxZoom, minZoom } from './leaflet-map'
 import type { LeafletApi, MapInstance } from './leaflet-map'
 import { useDepthLayer } from './use-depth-layer'
@@ -26,7 +28,7 @@ import { PlacePage } from './PlacePage'
 
 const apiBase = import.meta.env.VITE_API_BASE_URL?.trim() || '/api'
 const emptyPlaces: readonly Place[] = []
-type SpotsResult = { cityId: number; attempt: number } & ({ status: 'ready'; places: Place[] } | { status: 'error' })
+type SpotsResult = { cityId: number; attempt: number; filterKey: string } & ({ status: 'ready'; places: Place[] } | { status: 'error' })
 
 export function PlacesMap({ cityId, cityName, center, initialPlace }: { cityId: number; cityName: string; center: [number, number]; initialPlace?: Place }) {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -41,7 +43,12 @@ export function PlacesMap({ cityId, cityName, center, initialPlace }: { cityId: 
   const selectedPlace = selection?.cityId === cityId ? selection.place : null
   const [spotsResult, setSpotsResult] = useState<SpotsResult | null>(null)
   const [spotsAttempt, setSpotsAttempt] = useState(0)
-  const currentSpots = spotsResult?.cityId === cityId && spotsResult.attempt === spotsAttempt ? spotsResult : null
+  const [filters, setFilters] = useState<SpotFilters>(noSpotFilters)
+  const filterKey = `${filters.speciesId}|${filters.methodId}`
+  const hasFilters = Boolean(filters.speciesId || filters.methodId)
+  const species = useFilterOptions('/species', apiBase)
+  const methods = useFilterOptions('/fishing-methods', apiBase)
+  const currentSpots = spotsResult?.cityId === cityId && spotsResult.attempt === spotsAttempt && spotsResult.filterKey === filterKey ? spotsResult : null
   const places = currentSpots?.status === 'ready' ? currentSpots.places : emptyPlaces
   const [markerError, setMarkerError] = useState(false)
   const [markerContainers, setMarkerContainers] = useState<{ place: Place; element: HTMLDivElement }[]>([])
@@ -73,13 +80,15 @@ export function PlacesMap({ cityId, cityName, center, initialPlace }: { cityId: 
   useEffect(() => {
     const controller = new AbortController()
     const signal = AbortSignal.any([controller.signal, AbortSignal.timeout(20000)])
-    loadSpots(cityId, apiBase, signal).then((data) => {
-      if (!controller.signal.aborted) setSpotsResult({ cityId, attempt: spotsAttempt, status: 'ready', places: data })
+    loadSpots(cityId, apiBase, signal, filters).then((data) => {
+      if (!controller.signal.aborted) setSpotsResult({ cityId, attempt: spotsAttempt, filterKey, status: 'ready', places: data })
     }).catch(() => {
-      if (!controller.signal.aborted) setSpotsResult({ cityId, attempt: spotsAttempt, status: 'error' })
+      if (!controller.signal.aborted) setSpotsResult({ cityId, attempt: spotsAttempt, filterKey, status: 'error' })
     })
     return () => controller.abort()
-  }, [cityId, spotsAttempt])
+    // filters входит в filterKey.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cityId, spotsAttempt, filterKey])
 
   // Remove markers before destroying their parent map.
   useEffect(() => {
@@ -186,8 +195,10 @@ export function PlacesMap({ cityId, cityName, center, initialPlace }: { cityId: 
     <section ref={overviewRef} className={openPlace ? 'hidden' : 'flex w-full min-w-0 flex-col gap-4'} aria-labelledby="places-title">
       <h1 id="places-title" className="m-0 text-3xl leading-tight font-extrabold sm:text-4xl">Карта мест</h1>
       <FilterBar className="flex flex-wrap items-center gap-3 pt-2">
-        <Select label="Все виды рыб" icon={fishIcon} options={[]} value="" onChange={() => {}} disabled />
-        <Select label="Откуда ловить" icon={rodIcon} options={[]} value="" onChange={() => {}} disabled />
+        <Select label="Все виды рыб" icon={fishIcon} options={species.options} value={filters.speciesId} onChange={(speciesId) => { setSelection(null); setFilters({ ...filters, speciesId }) }} disabled={species.status !== 'ready'} />
+        <Select label="Все способы ловли" icon={rodIcon} options={methods.options} value={filters.methodId} onChange={(methodId) => { setSelection(null); setFilters({ ...filters, methodId }) }} disabled={methods.status !== 'ready'} />
+        {hasFilters && <Button variant="secondary" size="md" onClick={() => { setSelection(null); setFilters(noSpotFilters) }}>Сбросить фильтры</Button>}
+        {(species.status === 'error' || methods.status === 'error') && <p className="m-0 text-xs text-text-muted" role="status">Не удалось загрузить список для фильтра. Обновите страницу.</p>}
       </FilterBar>
       {/* Отдельная строка для легенды сохраняет высоту правой панели по карте. */}
       <div className="grid w-full grid-cols-1 items-start gap-8 xl:grid-cols-[minmax(0,--spacing(176))_minmax(--spacing(64),1fr)] xl:gap-y-0">
@@ -266,7 +277,8 @@ export function PlacesMap({ cityId, cityName, center, initialPlace }: { cityId: 
           </div>
         ) : (
           <div className="flex flex-col items-start gap-3 rounded-3xl bg-surface p-6" role="status">
-            <p className="m-0 text-sm text-text-muted">Мест пока нет. Загляните позже.</p>
+            <p className="m-0 text-sm text-text-muted">{hasFilters ? 'По этим фильтрам мест нет. Попробуйте другой вид рыбы или способ ловли.' : 'Мест пока нет. Загляните позже.'}</p>
+            {hasFilters && <Button variant="secondary" onClick={() => setFilters(noSpotFilters)}>Сбросить фильтры</Button>}
           </div>
         )}
       </section>
