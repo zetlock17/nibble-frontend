@@ -14,18 +14,20 @@ import type { FishState } from '@/features/fish/use-fish'
 import { FishLoadingState } from '@/features/fish/FishLoadingState'
 import { useSpots } from '@/features/map/use-spots'
 import type { City } from '@/features/city/cities'
+import { createPost, uploadImage } from '@/features/feed/feed-actions'
 
-type Props = { fish: FishState; city: City | null; origin: 'home' | 'profile'; onBack: () => void; active: boolean }
+type Props = { fish: FishState; city: City | null; origin: 'home' | 'profile'; signedIn: boolean; onRequireAuth: () => void; onPublished: () => void; onBack: () => void; active: boolean }
 
-export function AddCatchPage({ fish: catalogue, city, origin, onBack, active }: Props) {
+export function AddCatchPage({ fish: catalogue, city, origin, signedIn, onRequireAuth, onPublished, onBack, active }: Props) {
   const fish = catalogue.fish
   const id = useId()
   const headingRef = useRef<HTMLHeadingElement>(null)
   const fileRef = useRef<HTMLInputElement>(null)
   const uploadRef = useRef(0)
-  const [photo, setPhoto] = useState<{ url: string; name: string } | null>(null)
+  const [photo, setPhoto] = useState<{ url: string; name: string; file: File } | null>(null)
   const [uploadError, setUploadError] = useState('')
   const [uploading, setUploading] = useState(false)
+  const [publishing, setPublishing] = useState(false)
   const [dragging, setDragging] = useState(false)
   const [fishIds, setFishIds] = useState<string[]>([])
   const [placeId, setPlaceId] = useState('')
@@ -55,7 +57,7 @@ export function AddCatchPage({ fish: catalogue, city, origin, onBack, active }: 
       image.src = url
       await image.decode()
       if (request !== uploadRef.current) { URL.revokeObjectURL(url); return }
-      setPhoto({ url, name: file.name })
+      setPhoto({ url, name: file.name, file })
     } catch {
       URL.revokeObjectURL(url)
       if (request === uploadRef.current) setUploadError('Не удалось открыть фото. Выберите другой файл JPEG или PNG.')
@@ -64,10 +66,27 @@ export function AddCatchPage({ fish: catalogue, city, origin, onBack, active }: 
     }
   }
 
-  function submit(event: FormEvent<HTMLFormElement>) {
+  async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     const error = validateCatch({ hasPhoto: Boolean(photo), description, fishIds, placeId }, fish, places)
-    setMessage(error || 'Публикация пока недоступна. Заполненный улов остаётся здесь, пока открыта вкладка.')
+    if (error) { setMessage(error); return }
+    if (!signedIn) { onRequireAuth(); return }
+    if (!photo) return
+    setPublishing(true)
+    setMessage('')
+    try {
+      const key = await uploadImage(photo.file)
+      await createPost({ text: description.trim(), mediaKeys: [key], spotId: placeId ? Number(placeId) : undefined, speciesIds: fishIds.map(Number) })
+      setPhoto(null)
+      setDescription('')
+      setFishIds([])
+      setPlaceId('')
+      onPublished()
+    } catch {
+      setMessage('Не удалось опубликовать улов. Заполненная форма сохранена, попробуйте ещё раз.')
+    } finally {
+      setPublishing(false)
+    }
   }
 
   return (
@@ -131,12 +150,12 @@ export function AddCatchPage({ fish: catalogue, city, origin, onBack, active }: 
               <span className="text-lg font-extrabold">Добавить фото</span>
               <span className="text-sm text-text-muted">Выберите файл <span className="hidden sm:inline">или перетащите сюда</span></span>
             </button>}
-            <p id={`${id}-photo-hint`} className="mt-2 mb-0 text-xs leading-5 text-text-muted">JPEG или PNG, до 10 МБ. Можно опубликовать без фото.</p>
+            <p id={`${id}-photo-hint`} className="mt-2 mb-0 text-xs leading-5 text-text-muted">JPEG или PNG, до 10 МБ.</p>
             {uploading && <p className="mt-2 mb-0 text-sm text-text-muted" role="status">Открываем фото…</p>}
             {uploadError && <p className="mt-2 mb-0 text-sm text-focus" role="alert">{uploadError}</p>}
           </div>
           <div className="flex shrink-0 justify-end">
-            <Button type="submit" size="md" disabled={uploading} className="max-sm:w-full">Опубликовать улов</Button>
+            <Button type="submit" size="md" disabled={uploading || publishing} className="max-sm:w-full">{publishing ? 'Публикуем…' : 'Опубликовать улов'}</Button>
           </div>
           {message && <p className="m-0 text-sm leading-6 text-focus" role="alert">{message}</p>}
         </div>

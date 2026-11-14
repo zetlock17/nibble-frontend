@@ -3,14 +3,18 @@ import { useSpots } from '@/features/map/use-spots'
 import { Feed } from './Feed'
 import { initialFeedFilters } from './feed-model'
 import { useFeed, useFishOptions } from './use-feed'
+import { useReactions } from './use-reactions'
 
 // Лента из API: загрузка, фильтры на стороне сервера и подгрузка страниц.
-export function LiveFeed({ cityId, resources }: { cityId: number; resources?: ReactNode }) {
+type LiveFeedProps = { cityId: number; userId?: number; onRequireAuth: () => void; resources?: ReactNode }
+
+export function LiveFeed({ cityId, userId, onRequireAuth, resources }: LiveFeedProps) {
   const [filters, setFilters] = useState(initialFeedFilters)
   const [referenceTime] = useState(() => new Date().toISOString())
-  const feed = useFeed(cityId, filters)
+  const feed = useFeed(cityId, userId ?? 0, filters)
   const spots = useSpots(cityId, true)
   const fish = useFishOptions()
+  const reactions = useReactions(userId !== undefined, onRequireAuth)
   const places = useMemo(() => spots.places.map((place) => ({ value: place.id, label: place.name })), [spots.places])
 
   return (
@@ -23,6 +27,8 @@ export function LiveFeed({ cityId, resources }: { cityId: number; resources?: Re
       fish={fish}
       more={{ hasMore: feed.hasMore, loading: feed.loadingMore, error: feed.moreError, onLoad: feed.loadMore }}
       onRetry={feed.retry}
+      reactions={reactions}
+      currentUserId={userId === undefined ? undefined : String(userId)}
       resources={resources}
     />
   )

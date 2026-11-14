@@ -11,6 +11,7 @@ export function validateCatch(draft: { hasPhoto: boolean; description: string; f
   if (draft.fishIds.some((id) => !fish.some((item) => item.id === id))) return 'Выберите рыбу из списка.'
   if (draft.placeId && !places.some((item) => item.id === draft.placeId)) return 'Выберите место из списка или отметку на карте.'
   if (draft.description.length > 3000) return 'Сократите описание до 3000 символов.'
-  if (!draft.hasPhoto && !draft.description.trim()) return 'Добавьте фото или расскажите, как прошла рыбалка.'
+  if (!draft.hasPhoto) return 'Добавьте фото улова.'
+  if (!draft.description.trim()) return 'Расскажите, как прошла рыбалка.'
   return ''
 }

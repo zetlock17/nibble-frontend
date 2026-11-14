@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useLayoutEffect, useState } from 'react'
 import { Header } from '@/components/layout/header/Header'
 import type { SearchNavigation, SearchTarget } from '@/components/layout/header/search-api'
 import type { Section } from '@/components/layout/sidebar/Sidebar'
@@ -7,13 +7,19 @@ import type { City } from '@/features/city/cities'
 import { HomePage } from '@/pages/home/HomePage'
 import { AuthPage } from '@/pages/auth/AuthPage'
 import { useAuth } from '@/features/auth/use-auth'
+import { bindSession } from '@/features/auth/authed-fetch'
 
 export default function App() {
   const [searchNavigation, setSearchNavigation] = useState<SearchNavigation | null>(null)
   const [section, setSection] = useState<Section>('home')
   const auth = useAuth()
   const user = auth.user
-  const [authTarget, setAuthTarget] = useState<'profile' | 'add-catch'>('profile')
+  // Layout-эффект срабатывает раньше загрузок в дочерних компонентах, поэтому запросы уходят уже с токеном.
+  useLayoutEffect(() => {
+    bindSession(user ? auth.client : null)
+    return () => bindSession(null)
+  }, [user, auth.client])
+  const [authTarget, setAuthTarget] = useState<Section>('profile')
   const [authOpen, setAuthOpen] = useState(false)
   const [citiesResult, setCitiesResult] = useState<{ cities: City[] } | { error: true } | null>(null)
   const [cityId, setCityId] = useState<number | null>(null)
@@ -62,7 +68,7 @@ export default function App() {
     <div className="flex h-svh flex-col overflow-clip px-2 py-5 max-sm:py-3 2xl:px-9 2xl:py-6">
       <Header city={city} cities={cities} cityStatus={cityStatus} onCityChange={(id) => { setCityId(id); setSearchNavigation(null) }} onRetryCities={retryCities} user={displayUser} onSearchNavigate={openSearchResult} onProfileClick={() => changeSection('profile')} onAddCatch={openCatch} />
       {auth.error && <div role="alert" className="mt-3 flex shrink-0 flex-wrap items-center gap-3 rounded-2xl bg-surface p-4 text-sm text-danger">{auth.error}{auth.status === 'error' && <button type="button" onClick={auth.retry} className="bg-transparent p-0 text-focus underline">Повторить</button>}</div>}
-      <HomePage searchNavigation={searchNavigation} city={city} section={visibleSection} onSectionChange={changeSection} onAddCatch={openCatch} catchOrigin={catchOrigin} user={displayUser} signingOut={auth.signingOut} onSignOut={() => { void auth.logout().then((done) => { if (done) setSection('home') }) }} />
+      <HomePage searchNavigation={searchNavigation} city={city} section={visibleSection} onSectionChange={changeSection} onAddCatch={openCatch} catchOrigin={catchOrigin} user={displayUser} signingOut={auth.signingOut} onRequireAuth={() => { setAuthTarget(section); setAuthOpen(true) }} onSignOut={() => { void auth.logout().then((done) => { if (done) setSection('home') }) }} />
     </div>
     </div>
     </>
