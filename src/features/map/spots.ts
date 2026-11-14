@@ -1,4 +1,6 @@
 import type { Place } from './place.ts'
+import { spotsQuery } from './spot-filters.ts'
+import type { SpotFilters } from './spot-filters.ts'
 
 function record(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
@@ -71,9 +73,9 @@ export function parseSpotDetails(value: unknown): Place {
   return { ...place, description: optionalText(value.description), species, fishIds: species.map((item) => item.id), methods, aliases }
 }
 
-export async function loadSpots(cityId: number, apiBase: string, signal: AbortSignal): Promise<Place[]> {
+export async function loadSpots(cityId: number, apiBase: string, signal: AbortSignal, filters?: SpotFilters): Promise<Place[]> {
   if (!id(cityId)) throw new Error('Invalid city ID')
-  const response = await fetch(`${apiBase.replace(/\/+$/, '')}/spots?city_id=${cityId}`, { signal, headers: { Accept: 'application/json' } })
+  const response = await fetch(`${apiBase.replace(/\/+$/, '')}/spots?${spotsQuery(cityId, filters)}`, { signal, headers: { Accept: 'application/json' } })
   if (!response.ok) throw new Error(`Spot request failed: ${response.status}`)
   const data: unknown = await response.json()
   if (!Array.isArray(data)) throw new Error('Invalid spot list')
