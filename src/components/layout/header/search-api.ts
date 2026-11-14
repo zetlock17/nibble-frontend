@@ -1,7 +1,8 @@
 import type { Place } from '@/features/map/place'
 import { parseSpot } from '@/features/map/spots'
 
-export type SearchTarget = { kind: 'spot'; place: Place } | { kind: 'species'; id: string }
+// species-map открывает карту с фильтром по виду рыбы (кнопка «Показать на карте» в карточке рыбы).
+export type SearchTarget = { kind: 'spot'; place: Place } | { kind: 'species'; id: string } | { kind: 'species-map'; id: string }
 export type SearchNavigation = { target: SearchTarget; revision: number }
 export type SearchResults = { spots: Place[]; species: { id: string; name: string; description: string }[] }
 export type SearchResult = { data: SearchResults } | { error: true }
