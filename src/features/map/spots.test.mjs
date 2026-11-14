@@ -62,8 +62,15 @@ function markerEnvironment() {
     },
   }
   const attached = new Set()
-  const map = { addChild(marker) { attached.add(marker) }, removeChild(marker) { assert.ok(attached.delete(marker)) } }
-  const api = { YMapMarker: class { constructor(props, element) { this.props = props; this.element = element } } }
+  const map = {}
+  const api = {
+    divIcon: (options) => options,
+    marker: (latlng, options) => ({
+      latlng, options,
+      addTo() { attached.add(this); return this },
+      remove() { assert.ok(attached.delete(this)) },
+    }),
+  }
   return { map, api, attached }
 }
 
@@ -72,22 +79,20 @@ test('markers attach containers at real spot coordinates and detach on cleanup',
   const place = parseSpot(spot)
   const result = createSpotMarkers(map, api, [place], place.id)
   const marker = [...attached][0]
-  assert.deepEqual(marker.props.coordinates, [131.940298, 43.029808])
-  assert.ok(marker.props.zIndex > 100)
-  assert.deepEqual(result.containers, [{ place, element: marker.element }])
+  assert.deepEqual(marker.latlng, [43.029808, 131.940298])
+  assert.ok(marker.options.zIndexOffset > 0)
+  assert.deepEqual(result.containers, [{ place, element: marker.options.icon.html }])
   result.remove()
   assert.equal(attached.size, 0)
 })
 
-test('removes already attached markers if SDK fails halfway through', () => {
+test('removes already attached markers if the map library fails halfway through', () => {
   const { map, api, attached } = markerEnvironment()
-  const Marker = api.YMapMarker
+  const createMarker = api.marker
   let created = 0
-  api.YMapMarker = class extends Marker {
-    constructor(...args) {
-      if (++created === 2) throw new Error('SDK failed')
-      super(...args)
-    }
+  api.marker = (...args) => {
+    if (++created === 2) throw new Error('SDK failed')
+    return createMarker(...args)
   }
   assert.throws(() => createSpotMarkers(map, api, [parseSpot(spot), parseSpot({ ...spot, id: 13 })], undefined), /SDK failed/)
   assert.equal(attached.size, 0)
