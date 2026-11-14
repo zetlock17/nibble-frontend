@@ -57,13 +57,17 @@ export function SeasonalFish({ fish, onOpenGuide }: { fish: readonly Fish[]; onO
           </div>
           <div className="flex flex-col gap-2 text-sm leading-6">
             <h3 className="m-0 text-sm font-bold">Фотографии</h3>
-            <ul className="m-0 flex list-none flex-col gap-2 p-0">
+            <ul className="m-0 flex list-none flex-col gap-4 p-0">
               {selection.fish.map((item) => {
                 const source = fishPhotoSources[item.id]
-                return source ? <li key={item.id}><a href={source.url} target="_blank" rel="noopener noreferrer" className="text-focus underline underline-offset-4">{source.name}</a><span className="text-text-muted"> · {source.credit || 'Wikimedia Commons, автор и лицензия на странице фото'}</span></li> : null
+                return source ? (
+                  <li key={item.id} className="flex flex-col gap-0.5">
+                    <a href={source.url} target="_blank" rel="noopener noreferrer" className="w-fit font-semibold text-focus underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus">{source.name}</a>
+                    <span className="text-xs leading-5 text-text-muted">{source.credit || 'Wikimedia Commons, автор и лицензия на странице фото'}</span>
+                  </li>
+                ) : null
               })}
             </ul>
-            <p className="m-0 text-xs leading-5 text-text-muted">Фотографии иллюстративные. Кадрирование под размер карточки выполнено при показе.</p>
           </div>
           <Button variant="secondary" className="self-end" onClick={() => sourcesRef.current?.close()}>Закрыть</Button>
         </div>

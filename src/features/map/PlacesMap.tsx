@@ -153,7 +153,6 @@ export function PlacesMap({ cityId, center }: { cityId: number; center: [number,
       <FilterBar className="flex flex-wrap items-center gap-3 pt-2">
         <Select label="Все виды рыб" icon={fishIcon} options={[]} value="" onChange={() => {}} disabled />
         <Select label="Откуда ловить" icon={rodIcon} options={[]} value="" onChange={() => {}} disabled />
-        <p className="m-0 text-xs text-text-muted">Фильтры мест пока недоступны.</p>
       </FilterBar>
       {/* Отдельная строка для легенды сохраняет высоту правой панели по карте. */}
       <div className="grid w-full grid-cols-1 items-start gap-8 xl:grid-cols-[minmax(0,--spacing(176))_minmax(--spacing(64),1fr)] xl:gap-y-0">
