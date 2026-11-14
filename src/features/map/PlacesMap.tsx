@@ -11,8 +11,8 @@ import pinIcon from '@/assets/icons/map/pin.svg'
 import { Button } from '@/components/ui/button/Button'
 import { IconButton } from '@/components/ui/button/IconButton'
 import { Select } from '@/components/ui/select/Select'
-import { loadYandexMaps } from './yandex-maps'
-import type { MapInstance, MapsApi } from './yandex-maps'
+import { createMap, flyTo, loadLeaflet, maxZoom, minZoom } from './leaflet-map'
+import type { LeafletApi, MapInstance } from './leaflet-map'
 import { useDepthLayer } from './use-depth-layer'
 import { DepthLegend } from './DepthLegend'
 import type { Place } from './place'
@@ -22,7 +22,6 @@ import { revealPlace } from './reveal-place'
 import { loadSpots } from './spots'
 import { createSpotMarkers } from './spot-markers'
 
-const apiKey = import.meta.env.VITE_YANDEX_MAPS_API_KEY?.trim()
 const apiBase = import.meta.env.VITE_API_BASE_URL?.trim() || '/api'
 const emptyPlaces: readonly Place[] = []
 type SpotsResult = { cityId: number; attempt: number } & ({ status: 'ready'; places: Place[] } | { status: 'error' })
@@ -30,7 +29,7 @@ type SpotsResult = { cityId: number; attempt: number } & ({ status: 'ready'; pla
 export function PlacesMap({ cityId = 1 }: { cityId?: number }) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<MapInstance | null>(null)
-  const apiRef = useRef<MapsApi | null>(null)
+  const apiRef = useRef<LeafletApi | null>(null)
   const overviewRef = useRef<HTMLElement>(null)
   const detailsRef = useRef<HTMLDivElement>(null)
   const [selection, setSelection] = useState<{ cityId: number; place: Place } | null>(null)
@@ -40,7 +39,7 @@ export function PlacesMap({ cityId = 1 }: { cityId?: number }) {
   const currentSpots = spotsResult?.cityId === cityId && spotsResult.attempt === spotsAttempt ? spotsResult : null
   const places = currentSpots?.status === 'ready' ? currentSpots.places : emptyPlaces
   const [markerError, setMarkerError] = useState(false)
-  const [status, setStatus] = useState<'loading' | 'missing-key' | 'ready' | 'error'>(apiKey ? 'loading' : 'missing-key')
+  const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
   const [attempt, setAttempt] = useState(0)
   const [locating, setLocating] = useState(false)
   const [locationError, setLocationError] = useState('')
@@ -55,11 +54,10 @@ export function PlacesMap({ cityId = 1 }: { cityId?: number }) {
   }, [cityId])
 
   useEffect(() => {
-    if (status === 'ready' && selectedPlace?.coordinates) mapRef.current?.setLocation({
-      center: selectedPlace.coordinates,
-      zoom: 14,
-      duration: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 300,
-    })
+    const map = mapRef.current
+    if (status === 'ready' && map && selectedPlace?.coordinates) {
+      flyTo(map, selectedPlace.coordinates, 14, !window.matchMedia('(prefers-reduced-motion: reduce)').matches)
+    }
   }, [selectedPlace, status, attempt])
 
   useEffect(() => {
@@ -93,23 +91,17 @@ export function PlacesMap({ cityId = 1 }: { cityId?: number }) {
   }, [places, selectedPlace?.id, selectPlace, status, attempt])
 
   useEffect(() => {
-    if (!apiKey) return
     let cancelled = false
     let map: MapInstance | undefined
 
-    loadYandexMaps(apiKey).then((api) => {
+    loadLeaflet().then((api) => {
       if (cancelled || !containerRef.current) return
-      map = new api.YMap(containerRef.current, {
-        location: { center: [131.8855, 43.1155], zoom: 10 },
-        zoomRange: { min: 2, max: 21 },
-      })
+      map = createMap(api, containerRef.current, [131.8855, 43.1155], 10)
       mapRef.current = map
       apiRef.current = api
-      map.addChild(new api.YMapDefaultSchemeLayer())
-      map.addChild(new api.YMapDefaultFeaturesLayer())
       setStatus('ready')
     }).catch(() => {
-      map?.destroy()
+      map?.remove()
       map = undefined
       if (!cancelled) {
         mapRef.current = null
@@ -119,7 +111,7 @@ export function PlacesMap({ cityId = 1 }: { cityId?: number }) {
 
     return () => {
       cancelled = true
-      map?.destroy()
+      map?.remove()
       mapRef.current = null
       apiRef.current = null
     }
@@ -127,7 +119,7 @@ export function PlacesMap({ cityId = 1 }: { cityId?: number }) {
 
   function changeZoom(delta: number) {
     const map = mapRef.current
-    if (map) map.setLocation({ zoom: Math.min(21, Math.max(2, map.zoom + delta)) })
+    if (map) map.setZoom(Math.min(maxZoom, Math.max(minZoom, map.getZoom() + delta)))
   }
 
   function locate() {
@@ -140,7 +132,7 @@ export function PlacesMap({ cityId = 1 }: { cityId?: number }) {
     setLocating(true)
     navigator.geolocation.getCurrentPosition(({ coords }) => {
       if (mapRef.current !== map) return
-      map?.setLocation({ center: [coords.longitude, coords.latitude], zoom: 14 })
+      if (map) flyTo(map, [coords.longitude, coords.latitude], 14, true)
       setLocating(false)
     }, (error) => {
       if (mapRef.current !== map) return
@@ -168,8 +160,7 @@ export function PlacesMap({ cityId = 1 }: { cityId?: number }) {
               {status !== 'ready' && (
                 <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 px-14 text-center" role="status">
                   <p className="m-0 max-w-64 text-sm text-text-muted">
-                    {status === 'missing-key' ? 'Карта появится после подключения ключа Яндекс Карт.'
-                      : status === 'error' ? 'Не удалось загрузить карту. Проверьте подключение и попробуйте ещё раз.'
+                    {status === 'error' ? 'Не удалось загрузить карту. Проверьте подключение и попробуйте ещё раз.'
                       : 'Загружаем карту…'}
                   </p>
                   {status === 'error' && <Button onClick={() => { setStatus('loading'); setAttempt((value) => value + 1) }}>Повторить</Button>}

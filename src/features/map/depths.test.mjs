@@ -80,10 +80,10 @@ function setupLayer(data) {
   const children = new Set()
   const created = []
   const map = {
-    addChild(feature) { assert.ok(!children.has(feature)); children.add(feature) },
-    removeChild(feature) { assert.ok(children.has(feature)); children.delete(feature) },
+    addLayer(feature) { assert.ok(!children.has(feature)); children.add(feature) },
+    removeLayer(feature) { assert.ok(children.has(feature)); children.delete(feature) },
   }
-  const api = { YMapFeature: class { constructor(props) { this.props = props; created.push(this) } } }
+  const api = { polygon(latlngs, options) { const layer = { latlngs, options }; created.push(layer); return layer } }
   const colors = new Map(depthPalette.map(({ token }) => [token, 'test-color']))
   return { layer: createDepthLayer(map, api, data, colors), children, created }
 }
@@ -94,8 +94,8 @@ test('draws separate polygons with holes, reuses SDK features, and removes only 
   children.add(marker)
   await layer.show(new AbortController().signal)
   assert.equal(children.size, 3)
-  assert.deepEqual(created[0].props.geometry, { type: 'Polygon', coordinates: [ring, hole] })
-  assert.deepEqual(created[0].props.style, { fill: 'test-color', fillOpacity: 0.55, stroke: [{ width: 0 }], zIndex: 100, interactive: false })
+  assert.deepEqual(created[0].latlngs, [ring, hole].map((points) => points.map(([lng, lat]) => [lat, lng])))
+  assert.deepEqual(created[0].options, { fillColor: 'test-color', fillOpacity: 0.55, stroke: false, interactive: false })
   layer.hide()
   layer.hide()
   assert.deepEqual([...children], [marker])
