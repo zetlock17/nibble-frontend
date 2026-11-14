@@ -26,7 +26,7 @@ const apiBase = import.meta.env.VITE_API_BASE_URL?.trim() || '/api'
 const emptyPlaces: readonly Place[] = []
 type SpotsResult = { cityId: number; attempt: number } & ({ status: 'ready'; places: Place[] } | { status: 'error' })
 
-export function PlacesMap({ cityId = 1 }: { cityId?: number }) {
+export function PlacesMap({ cityId, center }: { cityId: number; center: [number, number] }) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<MapInstance | null>(null)
   const apiRef = useRef<LeafletApi | null>(null)
@@ -96,7 +96,7 @@ export function PlacesMap({ cityId = 1 }: { cityId?: number }) {
 
     loadLeaflet().then((api) => {
       if (cancelled || !containerRef.current) return
-      map = createMap(api, containerRef.current, [131.8855, 43.1155], 10)
+      map = createMap(api, containerRef.current, center, 10)
       mapRef.current = map
       apiRef.current = api
       setStatus('ready')
@@ -115,7 +115,7 @@ export function PlacesMap({ cityId = 1 }: { cityId?: number }) {
       mapRef.current = null
       apiRef.current = null
     }
-  }, [attempt])
+  }, [attempt, center])
 
   function changeZoom(delta: number) {
     const map = mapRef.current

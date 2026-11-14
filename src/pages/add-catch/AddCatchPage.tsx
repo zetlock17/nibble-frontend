@@ -12,13 +12,11 @@ import { CatchSpotMap } from '@/features/catch/CatchSpotMap'
 import { photoError, validateCatch } from '@/features/catch/catch-form'
 import type { Fish } from '@/features/fish/fish'
 import { useSpots } from '@/features/map/use-spots'
+import type { City } from '@/features/city/cities'
 
-// Идентификатор Владивостока в текущем API; выбор города пока не подключён.
-const cityId = 1
+type Props = { fish: readonly Fish[]; city: City | null; origin: 'home' | 'profile'; onBack: () => void; active: boolean }
 
-type Props = { fish: readonly Fish[]; origin: 'home' | 'profile'; onBack: () => void; active: boolean }
-
-export function AddCatchPage({ fish, origin, onBack, active }: Props) {
+export function AddCatchPage({ fish, city, origin, onBack, active }: Props) {
   const id = useId()
   const headingRef = useRef<HTMLHeadingElement>(null)
   const fileRef = useRef<HTMLInputElement>(null)
@@ -32,7 +30,7 @@ export function AddCatchPage({ fish, origin, onBack, active }: Props) {
   const [placeMode, setPlaceMode] = useState<'list' | 'map'>('list')
   const [description, setDescription] = useState('')
   const [message, setMessage] = useState('')
-  const spots = useSpots(cityId, active)
+  const spots = useSpots(city?.id ?? 0, active && Boolean(city))
   const places = spots.places
   const selectedPlace = places.find((place) => place.id === placeId)
   const selectPlace = useCallback((value: string) => { setPlaceId(value); setMessage('') }, [])
@@ -96,7 +94,7 @@ export function AddCatchPage({ fish, origin, onBack, active }: Props) {
               </div>
             ) : spots.status === 'loading' ? <p className="mt-0 mb-4 text-sm text-text-muted" role="status">Загружаем места…</p>
               : !places.length && <p className="mt-0 mb-4 text-sm text-text-muted" role="status">Мест пока нет. Улов можно опубликовать без места.</p>}
-            {placeMode === 'list' ? <SearchSelect label="Место ловли" placeholder="Выбрать место" icon={pinIcon} options={places.map((place) => ({ value: place.id, label: place.name, description: place.area }))} value={placeId ? [placeId] : []} onChange={(value) => selectPlace(value[0] ?? '')} /> : active && <CatchSpotMap places={places} selectedId={placeId} onSelect={selectPlace} />}
+            {placeMode === 'list' ? <SearchSelect label="Место ловли" placeholder="Выбрать место" icon={pinIcon} options={places.map((place) => ({ value: place.id, label: place.name, description: place.area }))} value={placeId ? [placeId] : []} onChange={(value) => selectPlace(value[0] ?? '')} /> : active && <CatchSpotMap key={city?.id} center={city?.coordinates} places={places} selectedId={placeId} onSelect={selectPlace} />}
           </fieldset>
 
           <div className="flex min-h-0 flex-1 flex-col">

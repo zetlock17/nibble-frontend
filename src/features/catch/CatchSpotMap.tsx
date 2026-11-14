@@ -8,7 +8,9 @@ import { IconButton } from '@/components/ui/button/IconButton'
 import { createMap, flyTo, loadLeaflet, maxZoom, minZoom, toLatLng, type LeafletApi, type MapInstance } from '@/features/map/leaflet-map'
 import type { Place } from '@/features/map/place'
 
-export function CatchSpotMap({ places, selectedId, onSelect }: { places: readonly Place[]; selectedId: string; onSelect: (id: string) => void }) {
+const defaultCenter: [number, number] = [131.8855, 43.1155]
+
+export function CatchSpotMap({ center = defaultCenter, places, selectedId, onSelect }: { center?: [number, number]; places: readonly Place[]; selectedId: string; onSelect: (id: string) => void }) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<MapInstance | null>(null)
   const markersRef = useRef(new Map<string, ReturnType<LeafletApi['marker']>>())
@@ -22,7 +24,7 @@ export function CatchSpotMap({ places, selectedId, onSelect }: { places: readonl
     const markers = markersRef.current
     loadLeaflet().then((api) => {
       if (cancelled || !containerRef.current) return
-      map = createMap(api, containerRef.current, [131.88, 43.025], 11)
+      map = createMap(api, containerRef.current, center, 11)
       mapRef.current = map
       const containers: { place: Place; element: HTMLDivElement }[] = []
       for (const place of places) {
@@ -50,7 +52,7 @@ export function CatchSpotMap({ places, selectedId, onSelect }: { places: readonl
       map?.remove()
       mapRef.current = null
     }
-  }, [places, attempt])
+  }, [places, center, attempt])
 
   useEffect(() => {
     for (const [id, marker] of markersRef.current) marker.setZIndexOffset(id === selectedId ? 1000 : 0)

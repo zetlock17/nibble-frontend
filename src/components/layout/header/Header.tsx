@@ -6,15 +6,21 @@ import chevronDown from '@/assets/icons/navigation/chevron-down.svg'
 import { Avatar } from '@/components/ui/avatar/Avatar'
 import { Button } from '@/components/ui/button/Button'
 import { SearchInput } from '@/components/ui/input/SearchInput'
+import { Dropdown } from '@/components/ui/select/Dropdown'
+import type { City } from '@/features/city/cities'
 
 type HeaderProps = {
-  city: string
+  city: City | null
+  cities: City[]
+  cityStatus: 'loading' | 'ready' | 'empty' | 'error'
+  onCityChange: (id: number) => void
+  onRetryCities: () => void
   user: { name: string; initials: string } | null
   onProfileClick: () => void
   onAddCatch: () => void
 }
 
-export function Header({ city, user, onProfileClick, onAddCatch }: HeaderProps) {
+export function Header({ city, cities, cityStatus, onCityChange, onRetryCities, user, onProfileClick, onAddCatch }: HeaderProps) {
   return (
     <header className="relative z-50 flex min-h-16 shrink-0 items-center gap-5 rounded-pill border border-navigation-divider bg-surface px-6 py-3 max-lg:gap-4 max-md:flex-wrap max-md:gap-3 max-md:rounded-3xl max-md:p-4 max-sm:gap-2 max-sm:px-3 max-sm:py-3.5">
       <a className="inline-flex shrink-0 items-center gap-2 no-underline" href="/" aria-label="Клёв, главная">
@@ -24,14 +30,10 @@ export function Header({ city, user, onProfileClick, onAddCatch }: HeaderProps) 
 
       <img className="block h-6 w-2 shrink-0 max-md:hidden" src={curveLine} alt="" />
 
-      <button
-        className="inline-flex min-h-9.5 shrink-0 items-center gap-1.5 border-0 bg-transparent p-0 text-base font-medium whitespace-nowrap max-md:text-sm"
-        type="button"
-        aria-label={`Город: ${city}`}
-      >
-        <span>{city}</span>
-        <img className="block size-3 shrink-0" src={chevronDown} alt="" />
-      </button>
+      {city ? <Dropdown wide label={`Город: ${city.name}`} value={String(city.id)} options={cities.map((item) => ({ value: String(item.id), label: item.name }))} onChange={(value) => onCityChange(Number(value))}
+        className="inline-flex min-h-9.5 shrink-0 items-center gap-1.5 rounded-lg border-0 bg-transparent p-0 text-base font-medium whitespace-nowrap focus-visible:outline-2 focus-visible:outline-focus max-md:text-sm">
+        <span>{city.name}</span><img className="block size-3 shrink-0" src={chevronDown} alt="" />
+      </Dropdown> : <div className="text-sm" role="status">{cityStatus === 'loading' ? 'Загружаем города…' : cityStatus === 'empty' ? 'Список городов пуст.' : 'Не удалось загрузить города.'} {cityStatus !== 'loading' && <button type="button" className="rounded-sm border-0 bg-transparent p-0 text-focus underline focus-visible:outline-2 focus-visible:outline-focus" onClick={onRetryCities}>Повторить</button>}</div>}
 
       <SearchInput
         tone="header"
