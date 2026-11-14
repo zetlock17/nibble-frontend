@@ -8,6 +8,7 @@ import externalIcon from '@/assets/icons/social/external.svg'
 import { Avatar } from '@/components/ui/avatar/Avatar'
 import { Badge } from '@/components/ui/badge/Badge'
 import { Button } from '@/components/ui/button/Button'
+import { PostComments } from './PostComments'
 import { formatPostDate, getTelegramPostUrl } from './feed-model'
 import type { FeedPost } from './feed-model'
 
@@ -18,11 +19,16 @@ type PostCardProps = {
   following?: boolean
   onLike: () => void
   onFollow?: () => void
+  // Без этого свойства комментарии показываются только числом.
+  comments?: { currentUserId?: string; onRequireAuth: () => void }
 }
 
-export function PostCard({ post, referenceTime, liked, following, onLike, onFollow }: PostCardProps) {
+export function PostCard({ post, referenceTime, liked, following, onLike, onFollow, comments }: PostCardProps) {
   const headingId = useId()
   const [failedImage, setFailedImage] = useState<string>()
+  const [commentsOpen, setCommentsOpen] = useState(false)
+  const [extraComments, setExtraComments] = useState(0)
+  const commentsCount = Math.max(0, post.commentsCount + extraComments)
   const hasImage = post.image && post.image.src !== failedImage
   const metadata = [
     post.fish && { ...post.fish, icon: fishIcon, narrowIcon: false },
@@ -61,9 +67,9 @@ export function PostCard({ post, referenceTime, liked, following, onLike, onFoll
       </header>
 
       {hasImage && post.image && (
-        <div className="relative overflow-hidden rounded-3xl">
+        <div className="relative overflow-hidden rounded-3xl bg-search">
           <img
-            className="block aspect-video w-full object-cover sm:aspect-7/3"
+            className="block max-h-160 w-full object-contain"
             src={post.image.src}
             alt={post.image.alt}
             loading="lazy"
@@ -87,20 +93,35 @@ export function PostCard({ post, referenceTime, liked, following, onLike, onFoll
       </p>
 
       <footer className="flex flex-wrap items-center gap-x-4 gap-y-2">
-        <button
-          className={`inline-flex min-h-11 items-center gap-1.5 rounded-pill border-0 bg-transparent px-0 py-1 text-lg leading-6 tabular-nums focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus sm:min-h-8 ${liked ? 'font-bold text-danger' : 'text-social-icon hover:text-danger'}`}
-          type="button"
-          aria-label={liked ? 'Убрать лайк' : 'Нравится'}
-          aria-pressed={liked}
-          onClick={onLike}
-        >
-          <span aria-hidden="true" className="size-5.5 bg-current mask-contain mask-center mask-no-repeat" style={{ maskImage: `url("${liked ? heartFullIcon : heartLineIcon}")` }} />
-          <span>{post.likesCount + Number(liked)}</span>
-        </button>
-        <span className="inline-flex min-h-8 items-center gap-1.5 text-lg leading-6 text-social-icon tabular-nums" aria-label={`Комментарии, ${post.commentsCount}`}>
-          <img className="size-5.5" src={commentIcon} alt="" />
-          <span>{post.commentsCount}</span>
-        </span>
+        {post.source.type === 'telegram' ? (
+          // Реакции Telegram показываем числом: поставить их отсюда нельзя.
+          <span className="inline-flex min-h-8 items-center gap-1.5 text-lg leading-6 text-social-icon tabular-nums" aria-label={`Реакции в Telegram, ${post.likesCount}`}>
+            <img className="size-5.5" src={heartLineIcon} alt="" />
+            <span>{post.likesCount}</span>
+          </span>
+        ) : (
+          <button
+            className={`inline-flex min-h-11 items-center gap-1.5 rounded-pill border-0 bg-transparent px-0 py-1 text-lg leading-6 tabular-nums focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus sm:min-h-8 ${liked ? 'font-bold text-danger' : 'text-social-icon hover:text-danger'}`}
+            type="button"
+            aria-label={liked ? 'Убрать лайк' : 'Нравится'}
+            aria-pressed={liked}
+            onClick={onLike}
+          >
+            <span aria-hidden="true" className="size-5.5 bg-current mask-contain mask-center mask-no-repeat" style={{ maskImage: `url("${liked ? heartFullIcon : heartLineIcon}")` }} />
+            <span>{post.likesCount + Number(liked)}</span>
+          </button>
+        )}
+        {comments ? (
+          <button type="button" aria-expanded={commentsOpen} aria-label={`Комментарии, ${commentsCount}`} onClick={() => setCommentsOpen(!commentsOpen)} className={`inline-flex min-h-11 items-center gap-1.5 rounded-pill border-0 bg-transparent px-0 py-1 text-lg leading-6 tabular-nums focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus sm:min-h-8 ${commentsOpen ? 'font-bold text-focus' : 'text-social-icon hover:text-focus'}`}>
+            <img className="size-5.5" src={commentIcon} alt="" />
+            <span>{commentsCount}</span>
+          </button>
+        ) : (
+          <span className="inline-flex min-h-8 items-center gap-1.5 text-lg leading-6 text-social-icon tabular-nums" aria-label={`Комментарии, ${commentsCount}`}>
+            <img className="size-5.5" src={commentIcon} alt="" />
+            <span>{commentsCount}</span>
+          </span>
+        )}
         {post.source.type === 'telegram' && (
           sourceUrl ? (
             <a className="ml-auto inline-flex min-h-8 cursor-pointer items-center gap-1.5 rounded-pill text-xs font-extrabold text-focus no-underline hover:underline" href={sourceUrl} target="_blank" rel="noopener noreferrer" aria-label={`Источник в Telegram, ${post.author.name}, откроется в новой вкладке`}>
@@ -115,6 +136,7 @@ export function PostCard({ post, referenceTime, liked, following, onLike, onFoll
           )
         )}
       </footer>
+      {comments && commentsOpen && <PostComments postId={post.id} referenceTime={referenceTime} currentUserId={comments.currentUserId} onRequireAuth={comments.onRequireAuth} onCountChange={(delta) => setExtraComments((value) => value + delta)} />}
     </article>
   )
 }

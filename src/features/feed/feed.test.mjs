@@ -5,6 +5,7 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { createServer } from 'vite'
 import { formatPostDate, getTelegramPostUrl, initialFeedFilters } from './feed-model.ts'
 import { feedQuery, parseFeedPage } from './feed-api.ts'
+import { parseCommentsPage } from './feed-actions.ts'
 
 // node --experimental-strip-types --test src/features/feed/feed.test.mjs
 const referenceTime = '2026-05-13T12:00:00+10:00'
@@ -37,6 +38,18 @@ test('публикация из API превращается в карточку
   assert.equal(parseFeedPage({ items: [], next_cursor: null }).nextCursor, null)
   assert.throws(() => parseFeedPage({ items: [{ id: 'x' }] }))
   assert.throws(() => parseFeedPage([]))
+})
+
+test('комментарии: скрытые и без автора не ломают список, курсор сохраняется', () => {
+  const page = parseCommentsPage({ items: [
+    { id: 1, post_id: 7, parent_id: null, text: 'Привет', author: { id: 3, display_name: 'Анна', avatar_url: null }, created_at: '2026-05-12T09:10:00Z', is_hidden: false },
+    { id: 2, post_id: 7, parent_id: null, text: 'Скрыто', author: null, created_at: '2026-05-12T09:11:00Z', is_hidden: true },
+  ], next_cursor: 2 })
+  assert.equal(page.nextCursor, 2)
+  assert.deepEqual([page.comments[0].text, page.comments[0].authorId, page.comments[0].authorName], ['Привет', '3', 'Анна'])
+  assert.deepEqual([page.comments[1].text, page.comments[1].authorId, page.comments[1].authorName], [null, null, 'Автор неизвестен'])
+  assert.equal(parseCommentsPage({ items: [], next_cursor: null }).nextCursor, null)
+  assert.throws(() => parseCommentsPage({ items: [{ id: 'x' }] }))
 })
 
 test('дата публикации учитывает часовой пояс Владивостока и неизвестную дату', () => {
