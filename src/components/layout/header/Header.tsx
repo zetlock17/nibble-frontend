@@ -1,6 +1,7 @@
 import logo from '@/assets/brand/logo.svg'
 import curveLine from '@/assets/icons/decorative/curve-line.svg'
 import plusIcon from '@/assets/icons/actions/plus.svg'
+import loginIcon from '@/assets/icons/actions/login.svg'
 import chevronDown from '@/assets/icons/navigation/chevron-down.svg'
 import { Avatar } from '@/components/ui/avatar/Avatar'
 import { Button } from '@/components/ui/button/Button'
@@ -8,7 +9,7 @@ import { SearchInput } from '@/components/ui/input/SearchInput'
 
 type HeaderProps = {
   city: string
-  user: { name: string; initials: string }
+  user: { name: string; initials: string } | null
   onProfileClick: () => void
   onAddCatch: () => void
 }
@@ -40,13 +41,13 @@ export function Header({ city, user, onProfileClick, onAddCatch }: HeaderProps) 
         name="search"
       />
 
-      <div className="ml-auto flex shrink-0 items-center gap-8 max-md:gap-3 max-sm:gap-2">
+      <div className={`ml-auto flex shrink-0 items-center ${user ? 'gap-8 max-md:gap-3 max-sm:gap-2' : 'gap-3 max-sm:gap-2'}`}>
         <Button className="max-md:w-9.5 max-md:px-0" aria-label="Добавить улов" onClick={onAddCatch}>
           <img className="block size-5 shrink-0" src={plusIcon} alt="" />
           <span className="max-md:hidden">Добавить улов</span>
         </Button>
 
-        <button
+        {user ? <button
           className="inline-flex min-h-9.5 shrink-0 items-center gap-2.5 border-0 bg-transparent p-0 text-right"
           type="button"
           aria-label={`Мой профиль: ${user.name}`}
@@ -57,7 +58,10 @@ export function Header({ city, user, onProfileClick, onAddCatch }: HeaderProps) 
             <span className="text-xs leading-4 font-medium text-text-muted">Мой профиль</span>
           </span>
           <Avatar initials={user.initials} />
-        </button>
+        </button> : <Button variant="dark" onClick={onProfileClick}>
+          <img className="size-5 shrink-0 brightness-0 invert" src={loginIcon} alt="" />
+          Войти
+        </Button>}
       </div>
     </header>
   )

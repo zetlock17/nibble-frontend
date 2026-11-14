@@ -10,8 +10,8 @@ import { tackleMock } from '@/mocks/tackle/listings'
 import { fishMock } from '@/mocks/fish/fish'
 import { feedMock, feedMockReferenceTime } from '@/mocks/feed/posts'
 import { ProfilePage } from '@/pages/profile/ProfilePage'
-import { profileMock, profilePostsMock } from '@/mocks/profile/profile'
-import { profilePhotosMock } from '@/mocks/profile/photos'
+import { profileMock } from '@/mocks/profile/profile'
+import type { AuthUser } from '@/pages/auth/AuthPage'
 import { scrollPageFromWheel } from './wheel-scroll'
 import { HomeResources } from './HomeResources'
 import { AddCatchPage } from '@/pages/add-catch/AddCatchPage'
@@ -21,9 +21,11 @@ type HomePageProps = {
   onSectionChange: (section: Section) => void
   onAddCatch: () => void
   catchOrigin: 'home' | 'profile'
+  user: AuthUser | null
+  onSignOut: () => void
 }
 
-export function HomePage({ section, onSectionChange, onAddCatch, catchOrigin }: HomePageProps) {
+export function HomePage({ section, onSectionChange, onAddCatch, catchOrigin, user, onSignOut }: HomePageProps) {
   const mainRef = useRef<HTMLElement>(null)
   const contentRef = useRef<HTMLDivElement>(null)
 
@@ -61,7 +63,7 @@ export function HomePage({ section, onSectionChange, onAddCatch, catchOrigin }: 
         {(section === 'profile' || section === 'places' || section === 'add-catch') && <div aria-hidden="true" className="hidden h-10 sm:block" />}
         {/* Не размонтируем форму: черновик и фото живут до закрытия вкладки. */}
         <div hidden={section !== 'add-catch'}><AddCatchPage fish={fishMock} places={placesMock} origin={catchOrigin} active={section === 'add-catch'} onBack={() => onSectionChange(catchOrigin)} /></div>
-        {section === 'add-catch' ? null : section === 'tackle' ? <TackleCatalog state={tackleMock} /> : section === 'profile' ? <ProfilePage profile={profileMock} state={{ status: 'ready', posts: profilePostsMock }} referenceTime={feedMockReferenceTime} photos={profilePhotosMock} onAddCatch={onAddCatch} /> : section === 'fish' ? <FishGuide fish={fishMock} /> : section === 'places' ? <PlacesMap places={placesMock} fish={fishMock} /> : <Feed state={feedMock} referenceTime={feedMockReferenceTime} resources={<HomeResources fish={fishMock} onOpenGuide={() => onSectionChange('fish')} />} />}
+        {section === 'add-catch' ? null : section === 'tackle' ? <TackleCatalog state={tackleMock} /> : section === 'profile' ? <ProfilePage profile={{ ...profileMock, name: user?.name ?? 'Рыбак', initials: user?.initials ?? 'Р', city: user?.city ?? '', bio: '', followersCount: 0 }} state={{ status: 'ready', posts: [] }} referenceTime={feedMockReferenceTime} photos={[]} onAddCatch={onAddCatch} onSignOut={onSignOut} /> : section === 'fish' ? <FishGuide fish={fishMock} /> : section === 'places' ? <PlacesMap places={placesMock} fish={fishMock} /> : <Feed state={feedMock} referenceTime={feedMockReferenceTime} resources={<HomeResources fish={fishMock} onOpenGuide={() => onSectionChange('fish')} />} />}
       </div>
       {section === 'home' && <div className="hidden min-w-64 flex-1 pt-10 2xl:block 2xl:h-full 2xl:min-h-0 2xl:overflow-hidden"><HomeResources fish={fishMock} onOpenGuide={() => onSectionChange('fish')} /></div>}
     </main>
