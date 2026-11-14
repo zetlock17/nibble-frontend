@@ -25,12 +25,13 @@ type SidebarProps = {
 
 export function Sidebar({ city, section, onSectionChange }: SidebarProps) {
   return (
-    <aside className="flex w-full shrink-0 flex-col gap-5.5 sm:max-h-full sm:w-74 sm:overflow-y-auto sm:pt-10 sm:overscroll-none sm:[&>*]:shrink-0" aria-label="Погода и разделы">
-      {city && <WeatherWidget key={city.id} cityId={city.id} timeZone={city.timeZone} />}
-      <nav className="rounded-4xl bg-surface p-4" aria-label="Основная навигация">
-        <ul className="m-0 flex list-none flex-col gap-2 p-0">
+    <aside className="flex w-full shrink-0 flex-col gap-5.5 max-sm:contents sm:max-h-full sm:w-74 sm:overflow-y-auto sm:pt-10 sm:overscroll-none sm:[&>*]:shrink-0" aria-label="Погода и разделы">
+      {/* На телефоне погода нужна только на главной; виджет остаётся смонтированным, чтобы не грузить прогноз заново. */}
+      {city && <div className={`max-sm:w-full ${section === 'home' ? '' : 'max-sm:hidden'}`}><WeatherWidget key={city.id} cityId={city.id} timeZone={city.timeZone} /></div>}
+      <nav className="rounded-4xl bg-surface p-4 max-sm:fixed max-sm:inset-x-2 max-sm:bottom-3 max-sm:z-40 max-sm:rounded-pill max-sm:border max-sm:border-navigation-divider max-sm:p-2 max-sm:shadow-lg" aria-label="Основная навигация">
+        <ul className="m-0 flex list-none flex-col gap-2 p-0 max-sm:flex-row max-sm:gap-1">
           {navigationItems.map(({ id, label, icon }) => (
-            <li key={id} className={id === 'tackle' ? 'before:mx-4 before:mb-2 before:block before:border-t before:border-navigation-divider/50' : undefined}>
+            <li key={id} className={`max-sm:min-w-0 ${section === id ? 'max-sm:flex-2' : 'max-sm:flex-1'} ${id === 'profile' ? 'max-sm:order-1' : ''} ${id === 'tackle' ? 'before:mx-4 before:mb-2 before:block before:border-t before:border-navigation-divider/50 max-sm:before:hidden' : ''}`}>
               <NavigationButton
                 icon={icon}
                 iconClassName={id === 'profile' || id === 'tackle' ? 'size-5.5' : 'size-6'}

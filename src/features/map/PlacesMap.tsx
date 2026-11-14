@@ -8,6 +8,7 @@ import locationIcon from '@/assets/icons/map/location-arrow.svg'
 import plusIcon from '@/assets/icons/actions/plus.svg'
 import minusIcon from '@/assets/icons/actions/minus.svg'
 import rodIcon from '@/assets/icons/fishing/rod.svg'
+import pinIcon from '@/assets/icons/map/pin.svg'
 import { Button } from '@/components/ui/button/Button'
 import { IconButton } from '@/components/ui/button/IconButton'
 import { Select } from '@/components/ui/select/Select'
@@ -28,6 +29,8 @@ import { PlacePage } from './PlacePage'
 
 const apiBase = import.meta.env.VITE_API_BASE_URL?.trim() || '/api'
 const emptyPlaces: readonly Place[] = []
+const placeLabels = { one: 'место', few: 'места', many: 'мест', other: 'места' }
+const pluralRules = new Intl.PluralRules('ru')
 type SpotsResult = { cityId: number; attempt: number; filterKey: string } & ({ status: 'ready'; places: Place[] } | { status: 'error' })
 
 export function PlacesMap({ cityId, cityName, center, initialPlace, initialSpeciesId }: { cityId: number; cityName: string; center: [number, number]; initialPlace?: Place; initialSpeciesId?: string }) {
@@ -194,17 +197,18 @@ export function PlacesMap({ cityId, cityName, center, initialPlace, initialSpeci
     {openPlace && <PlacePage key={openPlace.id} place={openPlace} cityName={cityName} onBack={() => closePlacePage()} onMap={closePlacePage} />}
     <section ref={overviewRef} className={openPlace ? 'hidden' : 'flex w-full min-w-0 flex-col gap-4'} aria-labelledby="places-title">
       <h1 id="places-title" className="m-0 text-3xl leading-tight font-extrabold sm:text-4xl">Карта мест</h1>
-      <FilterBar className="flex flex-wrap items-center gap-3 pt-2">
+      <FilterBar className="grid grid-cols-2 items-center gap-2 pt-2 sm:flex sm:flex-wrap sm:gap-3">
         <Select label="Все виды рыб" icon={fishIcon} options={species.options} value={filters.speciesId} onChange={(speciesId) => { setSelection(null); setFilters({ ...filters, speciesId }) }} disabled={species.status !== 'ready'} />
-        <Select label="Все способы ловли" icon={rodIcon} options={methods.options} value={filters.methodId} onChange={(methodId) => { setSelection(null); setFilters({ ...filters, methodId }) }} disabled={methods.status !== 'ready'} />
-        {hasFilters && <Button variant="secondary" size="md" onClick={() => { setSelection(null); setFilters(noSpotFilters) }}>Сбросить фильтры</Button>}
-        {(species.status === 'error' || methods.status === 'error') && <p className="m-0 text-xs text-text-muted" role="status">Не удалось загрузить список для фильтра. Обновите страницу.</p>}
+        <Select label="Все способы" icon={rodIcon} options={methods.options} value={filters.methodId} onChange={(methodId) => { setSelection(null); setFilters({ ...filters, methodId }) }} disabled={methods.status !== 'ready'} />
+        {hasFilters && <Button variant="secondary" size="md" className="max-sm:col-span-2" onClick={() => { setSelection(null); setFilters(noSpotFilters) }}>Сбросить фильтры</Button>}
+        {(species.status === 'error' || methods.status === 'error') && <p className="m-0 text-xs text-text-muted max-sm:col-span-2" role="status">Не удалось загрузить список для фильтра. Обновите страницу.</p>}
       </FilterBar>
+      {currentSpots?.status === 'ready' && <p className="m-0 text-sm text-text-muted" role="status">На карте {places.length} {placeLabels[pluralRules.select(places.length) as keyof typeof placeLabels]}</p>}
       {/* Отдельная строка для легенды сохраняет высоту правой панели по карте. */}
       <div className="grid w-full grid-cols-1 items-start gap-8 xl:grid-cols-[minmax(0,--spacing(176))_minmax(--spacing(64),1fr)] xl:gap-y-0">
         <div className="w-full max-w-176 rounded-4xl bg-surface xl:row-span-2 xl:grid xl:grid-rows-subgrid xl:self-stretch">
           <div className="p-2.5">
-            <div className="relative isolate aspect-4/3 min-h-96 overflow-hidden rounded-3xl bg-map-water">
+            <div className="relative isolate aspect-4/3 min-h-96 overflow-hidden rounded-3xl bg-map-water max-sm:aspect-5/4 max-sm:min-h-72">
               <div ref={containerRef} className="absolute inset-0 z-0" role="region" aria-label="Карта Владивостока и окрестностей" aria-busy={status === 'loading'} />
               {status !== 'ready' && (
                 <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 px-14 text-center" role="status">
@@ -240,6 +244,7 @@ export function PlacesMap({ cityId, cityName, center, initialPlace, initialSpeci
               </div>
             </div>
           </div>
+          <p className="m-0 flex items-center gap-2 px-4 pb-4 text-sm text-text-muted sm:hidden"><img className="size-4 shrink-0" src={pinIcon} alt="" />Нажмите на метку, чтобы открыть место.</p>
           {(depths.data || locationError) && (
             <div className="px-2.5 pb-2.5">
               {depths.data && <DepthLegend data={depths.data} />}
@@ -252,7 +257,7 @@ export function PlacesMap({ cityId, cityName, center, initialPlace, initialSpeci
             <SpotDetails key={`${cityId}:${selectedPlace.id}`} place={selectedPlace} onOpen={openPlacePage} />
           </div>
         ) : (
-          <div className="relative min-w-0 self-stretch xl:col-start-2 xl:row-start-1">
+          <div className="relative min-w-0 self-stretch max-sm:hidden xl:col-start-2 xl:row-start-1">
             <div className="flex min-h-0 flex-col items-center justify-center gap-6 px-6 py-8 text-center xl:absolute xl:inset-0">
               <img src={fishermanImage} alt="" className="h-100 min-h-0 w-112 max-w-full object-contain" />
               <p className="m-0 max-w-72 shrink-0 text-lg leading-7 font-semibold text-text-muted">Выберите место для рыбалки</p>
