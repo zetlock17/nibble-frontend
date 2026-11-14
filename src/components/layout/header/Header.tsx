@@ -19,11 +19,12 @@ type HeaderProps = {
   user: { name: string; initials: string; avatarUrl?: string | null } | null
   onProfileClick: () => void
   onHomeClick: () => void
+  onAdmin?: () => void
   onAddCatch: () => void
   onSearchNavigate: (target: SearchTarget) => void
 }
 
-export function Header({ city, cities, cityStatus, onCityChange, onRetryCities, user, onProfileClick, onHomeClick, onAddCatch, onSearchNavigate }: HeaderProps) {
+export function Header({ city, cities, cityStatus, onCityChange, onRetryCities, user, onProfileClick, onHomeClick, onAdmin, onAddCatch, onSearchNavigate }: HeaderProps) {
   return (
     <header className="relative z-50 flex min-h-16 shrink-0 items-center gap-5 rounded-pill border border-navigation-divider bg-surface px-6 py-3 max-lg:gap-4 max-md:flex-wrap max-md:gap-3 max-md:rounded-3xl max-md:p-4 max-sm:gap-2 max-sm:px-3 max-sm:py-3.5">
       <button type="button" className="inline-flex shrink-0 items-center gap-2 border-0 bg-transparent p-0 text-text" onClick={onHomeClick} aria-label="Клёв, главная">
@@ -45,6 +46,8 @@ export function Header({ city, cities, cityStatus, onCityChange, onRetryCities, 
           <img className="block size-5 shrink-0" src={plusIcon} alt="" />
           <span className="max-md:hidden">Добавить улов</span>
         </Button>
+
+        {onAdmin && <Button variant="secondary" onClick={onAdmin}>Админка</Button>}
 
         {user ? <button
           className="inline-flex min-h-9.5 shrink-0 items-center gap-2.5 border-0 bg-transparent p-0 text-right"
