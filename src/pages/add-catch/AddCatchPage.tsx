@@ -10,13 +10,15 @@ import { SearchSelect } from '@/components/ui/select/SearchSelect'
 import { SegmentedControl } from '@/components/ui/segmented-control/SegmentedControl'
 import { CatchSpotMap } from '@/features/catch/CatchSpotMap'
 import { photoError, validateCatch } from '@/features/catch/catch-form'
-import type { Fish } from '@/features/fish/fish'
+import type { FishState } from '@/features/fish/use-fish'
+import { FishLoadingState } from '@/features/fish/FishLoadingState'
 import { useSpots } from '@/features/map/use-spots'
 import type { City } from '@/features/city/cities'
 
-type Props = { fish: readonly Fish[]; city: City | null; origin: 'home' | 'profile'; onBack: () => void; active: boolean }
+type Props = { fish: FishState; city: City | null; origin: 'home' | 'profile'; onBack: () => void; active: boolean }
 
-export function AddCatchPage({ fish, city, origin, onBack, active }: Props) {
+export function AddCatchPage({ fish: catalogue, city, origin, onBack, active }: Props) {
+  const fish = catalogue.fish
   const id = useId()
   const headingRef = useRef<HTMLHeadingElement>(null)
   const fileRef = useRef<HTMLInputElement>(null)
@@ -110,6 +112,8 @@ export function AddCatchPage({ fish, city, origin, onBack, active }: Props) {
           <fieldset className="m-0 min-w-0 border-0 p-0">
             <legend className="mb-1 text-base font-extrabold">Виды рыб</legend>
             <p className="mt-0 mb-3 text-sm text-text-muted">Можно выбрать несколько видов.</p>
+            <FishLoadingState status={catalogue.status} onRetry={catalogue.retry} />
+            {catalogue.status === 'ready' && !fish.length && <p role="status" className="text-sm text-text-muted">В справочнике пока нет рыб. Вид можно не указывать.</p>}
             <SearchSelect label="Виды рыб" placeholder="Выбрать рыбу" icon={fishIcon} options={fish.map((item) => ({ value: item.id, label: item.name }))} value={fishIds} onChange={(value) => { setFishIds(value); setMessage('') }} multiple />
           </fieldset>
 

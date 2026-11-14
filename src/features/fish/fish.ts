@@ -1,19 +1,12 @@
 export type Season = 'all' | 'spring' | 'summer' | 'autumn' | 'winter'
 
-export const fishingMethods = [
-  { value: 'spinning', label: 'Спиннинг' },
-  { value: 'bottom', label: 'Донная снасть' },
-  { value: 'float', label: 'Поплавочная удочка' },
-  { value: 'ice', label: 'Зимняя ловля' },
-] as const
-
 export const fishHabitats = [
   { value: 'sea', label: 'Море' },
   { value: 'river', label: 'Реки' },
   { value: 'lake', label: 'Озёра' },
 ] as const
 
-export type FishingMethod = typeof fishingMethods[number]['value']
+export type FishingMethod = string
 export type FishHabitat = typeof fishHabitats[number]['value']
 
 export type Fish = {

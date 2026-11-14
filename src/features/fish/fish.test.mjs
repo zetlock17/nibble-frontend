@@ -32,23 +32,26 @@ test('способ и место обитания сочетаются с пои
   assert.deepEqual(filterFish(fish, '', 'all'), fish)
 })
 
-test('справочник рендерит шесть карточек, фильтры и состояния без данных', async () => {
-  const server = await createServer({ server: { middlewareMode: true, watch: null }, appType: 'custom' })
+test('справочник показывает загрузку, карточки отображают данные и запасные состояния', async () => {
+  const server = await createServer({ server: { middlewareMode: true, watch: null, hmr: false }, appType: 'custom' })
   try {
     const { FishGuide } = await server.ssrLoadModule('/src/features/fish/FishGuide.tsx')
     const { FishCard } = await server.ssrLoadModule('/src/features/fish/FishCard.tsx')
     const { FishDetails } = await server.ssrLoadModule('/src/features/fish/FishDetails.tsx')
+    const { AddCatchPage } = await server.ssrLoadModule('/src/pages/add-catch/AddCatchPage.tsx')
     const { fishMock } = await server.ssrLoadModule('/src/mocks/fish/fish.ts')
-    const html = renderToStaticMarkup(createElement(FishGuide, { fish: fishMock }))
-    assert.equal((html.match(/<article /g) ?? []).length, 6)
-    assert.doesNotMatch(html, /type="radio"/)
-    assert.equal((html.match(/aria-haspopup="listbox"/g) ?? []).length, 3)
+    const html = renderToStaticMarkup(createElement(FishGuide))
     assert.match(html, /Справочник рыб/)
+    assert.match(html, /Загружаем рыб/)
     assert.match(html, /type="search"/)
-    assert.equal((html.match(/Период ловли:/g) ?? []).length, 6)
-    assert.match(html, /Демонстрационные данные/)
-    assert.match(renderToStaticMarkup(createElement(FishGuide, { fish: [] })), /В справочнике пока нет рыб/)
-    assert.match(html, /aria-label="Подробнее: Терпуг"/)
+    assert.doesNotMatch(html, /Демонстрационные данные/)
+    assert.match(html, /Фильтры по способу ловли и месту обитания пока недоступны/)
+    const card = renderToStaticMarkup(createElement(FishCard, { fish: fishMock[0], onSelect() {} }))
+    assert.match(card, /aria-label="Подробнее: Терпуг"/)
+    for (const status of ['loading', 'error', 'ready']) {
+      const form = renderToStaticMarkup(createElement(AddCatchPage, { fish: { fish: [], status, retry() {} }, city: null, origin: 'home', active: false, onBack() {} }))
+      assert.match(form, status === 'loading' ? /Загружаем рыб/ : status === 'error' ? /Не удалось загрузить рыб/ : /В справочнике пока нет рыб/)
+    }
     const detailed = renderToStaticMarkup(createElement(FishDetails, { fish: fishMock[0], onBack() {} }))
     assert.match(detailed, /Терпуг/)
     assert.match(detailed, /35 см/)

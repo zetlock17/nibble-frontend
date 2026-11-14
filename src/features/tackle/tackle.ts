@@ -1,16 +1,7 @@
-export const tackleCategories = [
-  { value: 'rods', label: 'Удилища' },
-  { value: 'reels', label: 'Катушки' },
-  { value: 'lures', label: 'Приманки' },
-  { value: 'rigs', label: 'Оснастка' },
-] as const
-
-export type TackleCategory = typeof tackleCategories[number]['value']
 export type TackleListing = {
   id: string
   title: string
-  category?: TackleCategory
-  image?: string
+  images?: readonly string[]
   price?: number
   publishedOn?: string
   seller?: { name: string }
@@ -20,18 +11,17 @@ export type TackleListing = {
 export type TackleState =
   | { status: 'loading' }
   | { status: 'error' }
-  | { status: 'ready'; listings: readonly TackleListing[]; demo: boolean; updatedOn?: string }
+  | { status: 'ready'; listings: readonly TackleListing[]; updatedOn?: string }
 
 export type TackleFilters = {
   query: string
-  category: string
   minPrice: string
   maxPrice: string
   sort: string
 }
 
 export const initialTackleFilters: TackleFilters = {
-  query: '', category: '', minPrice: '', maxPrice: '', sort: '',
+  query: '', minPrice: '', maxPrice: '', sort: '',
 }
 
 const normalize = (value: string) => value.toLocaleLowerCase('ru').replaceAll('ё', 'е').trim()
@@ -42,7 +32,6 @@ export function filterTackle(listings: readonly TackleListing[], filters: Tackle
   const max = filters.maxPrice === '' ? undefined : Number(filters.maxPrice)
   return listings.filter((item) => (
     (!query || normalize(`${item.title} ${item.seller?.name ?? ''}`).includes(query))
-    && (!filters.category || item.category === filters.category)
     && (min === undefined || (item.price !== undefined && item.price >= min))
     && (max === undefined || (item.price !== undefined && item.price <= max))
   )).sort((a, b) => {

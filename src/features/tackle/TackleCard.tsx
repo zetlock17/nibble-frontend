@@ -6,7 +6,8 @@ import { formatTackleDate, getFarpostListingUrl, type TackleListing } from './ta
 const priceFormat = new Intl.NumberFormat('ru', { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 })
 
 export function TackleCard({ listing }: { listing: TackleListing }) {
-  const [failedImage, setFailedImage] = useState<string>()
+  const [failedImages, setFailedImages] = useState<string[]>([])
+  const image = listing.images?.find((source) => !failedImages.includes(source))
   const url = getFarpostListingUrl(listing.sourceUrl)
   const date = formatTackleDate(listing.publishedOn)
   const price = listing.price !== undefined && Number.isFinite(listing.price) && listing.price >= 0
@@ -15,8 +16,8 @@ export function TackleCard({ listing }: { listing: TackleListing }) {
   return (
     <article className="flex min-w-0 flex-col rounded-3xl bg-surface p-3 lg:p-4">
       <div className="flex aspect-3/2 items-center justify-center overflow-hidden rounded-2xl bg-search">
-        {listing.image && failedImage !== listing.image ? (
-          <img className="size-full object-contain" src={listing.image} alt={listing.title} loading="lazy" onError={() => setFailedImage(listing.image)} />
+        {image ? (
+          <img className="size-full object-contain" src={image} alt={listing.title} loading="lazy" onError={() => setFailedImages((current) => [...current, image])} />
         ) : (
           <div className="flex flex-col items-center gap-3 px-4 py-6 text-text-muted">
             <img className="size-9 opacity-40" src={rodIcon} alt="" />
