@@ -16,7 +16,7 @@ type HeaderProps = {
   cityStatus: 'loading' | 'ready' | 'empty' | 'error'
   onCityChange: (id: number) => void
   onRetryCities: () => void
-  user: { name: string; initials: string } | null
+  user: { name: string; initials: string; avatarUrl?: string | null } | null
   onProfileClick: () => void
   onAddCatch: () => void
   onSearchNavigate: (target: SearchTarget) => void
@@ -55,7 +55,7 @@ export function Header({ city, cities, cityStatus, onCityChange, onRetryCities, 
             <span className="text-sm leading-4.5 font-extrabold">{user.name}</span>
             <span className="text-xs leading-4 font-medium text-text-muted">Мой профиль</span>
           </span>
-          <Avatar initials={user.initials} />
+          <Avatar initials={user.initials} src={user.avatarUrl ?? undefined} />
         </button> : <Button variant="dark" onClick={onProfileClick}>
           <img className="size-5 shrink-0 brightness-0 invert" src={loginIcon} alt="" />
           Войти

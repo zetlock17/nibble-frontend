@@ -6,12 +6,14 @@ import { loadCities } from '@/features/city/cities'
 import type { City } from '@/features/city/cities'
 import { HomePage } from '@/pages/home/HomePage'
 import { AuthPage } from '@/pages/auth/AuthPage'
-import type { AuthUser } from '@/pages/auth/AuthPage'
+import { useAuth } from '@/features/auth/use-auth'
 
 export default function App() {
   const [searchNavigation, setSearchNavigation] = useState<SearchNavigation | null>(null)
   const [section, setSection] = useState<Section>('home')
-  const [user, setUser] = useState<AuthUser | null>(null)
+  const auth = useAuth()
+  const user = auth.user
+  const [authTarget, setAuthTarget] = useState<'profile' | 'add-catch'>('profile')
   const [authOpen, setAuthOpen] = useState(false)
   const [citiesResult, setCitiesResult] = useState<{ cities: City[] } | { error: true } | null>(null)
   const [cityId, setCityId] = useState<number | null>(null)
@@ -31,7 +33,7 @@ export default function App() {
   }, [cityAttempt])
 
   function changeSection(next: Section) {
-    if (next === 'profile' && !user) { setAuthOpen(true); return }
+    if ((next === 'profile' || next === 'add-catch') && !user) { setAuthTarget(next); setAuthOpen(true); return }
     setSearchNavigation(null)
     setSection(next)
   }
@@ -43,15 +45,24 @@ export default function App() {
   function openCatch() {
     setSearchNavigation(null)
     if (section !== 'add-catch') setCatchOrigin(section === 'profile' ? 'profile' : 'home')
+    if (!user) { setAuthTarget('add-catch'); setAuthOpen(true); return }
     setSection('add-catch')
   }
+  const cityStatus = !citiesResult ? 'loading' : 'error' in citiesResult ? 'error' : cities.length ? 'ready' : 'empty'
+  const retryCities = () => { setCitiesResult(null); setCityAttempt((value) => value + 1) }
+  const visibleSection = !user && (section === 'profile' || section === 'add-catch') ? 'home' : section
+  const displayUser = user ? { ...user, city: cities.find((item) => item.id === user.cityId)?.name ?? '' } : null
+
+  if (auth.status === 'loading') return <main id="main-content" className="flex min-h-svh items-center justify-center bg-page p-6"><p role="status">Восстанавливаем сессию…</p></main>
+
   return (
     <>
-    {authOpen && <AuthPage onBack={() => setAuthOpen(false)} onSignIn={(nextUser) => { setUser(nextUser); setAuthOpen(false); setSection('profile') }} />}
+    {authOpen && <AuthPage client={auth.client} cities={cities} cityStatus={cityStatus} onRetryCities={retryCities} onBack={() => setAuthOpen(false)} onSignIn={async (credentials) => { await auth.login(credentials); setAuthOpen(false); setSection(authTarget) }} />}
     <div hidden={authOpen} className="h-full">
     <div className="flex h-svh flex-col overflow-clip px-2 py-5 max-sm:py-3 2xl:px-9 2xl:py-6">
-      <Header city={city} cities={cities} cityStatus={!citiesResult ? 'loading' : 'error' in citiesResult ? 'error' : cities.length ? 'ready' : 'empty'} onCityChange={(id) => { setCityId(id); setSearchNavigation(null) }} onRetryCities={() => { setCitiesResult(null); setCityAttempt((value) => value + 1) }} user={user} onSearchNavigate={openSearchResult} onProfileClick={() => changeSection('profile')} onAddCatch={openCatch} />
-      <HomePage searchNavigation={searchNavigation} city={city} section={section} onSectionChange={changeSection} onAddCatch={openCatch} catchOrigin={catchOrigin} user={user} onSignOut={() => { setUser(null); setSection('home') }} />
+      <Header city={city} cities={cities} cityStatus={cityStatus} onCityChange={(id) => { setCityId(id); setSearchNavigation(null) }} onRetryCities={retryCities} user={displayUser} onSearchNavigate={openSearchResult} onProfileClick={() => changeSection('profile')} onAddCatch={openCatch} />
+      {auth.error && <div role="alert" className="mt-3 flex shrink-0 flex-wrap items-center gap-3 rounded-2xl bg-surface p-4 text-sm text-danger">{auth.error}{auth.status === 'error' && <button type="button" onClick={auth.retry} className="bg-transparent p-0 text-focus underline">Повторить</button>}</div>}
+      <HomePage searchNavigation={searchNavigation} city={city} section={visibleSection} onSectionChange={changeSection} onAddCatch={openCatch} catchOrigin={catchOrigin} user={displayUser} signingOut={auth.signingOut} onSignOut={() => { void auth.logout().then((done) => { if (done) setSection('home') }) }} />
     </div>
     </div>
     </>

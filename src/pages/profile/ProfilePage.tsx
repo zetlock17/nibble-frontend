@@ -12,19 +12,20 @@ import type { FeedState } from '@/features/feed/feed-model'
 import type { profileMock } from '@/mocks/profile/profile'
 
 type ProfilePageProps = {
-  profile: typeof profileMock
+  profile: typeof profileMock & { avatarUrl?: string }
   state: FeedState
   referenceTime: string
   photos: readonly GridPhoto[]
   onAddCatch: () => void
   onSignOut: () => void
+  signingOut: boolean
 }
 
 const postLabels = { one: 'пост', few: 'поста', many: 'постов', other: 'поста' }
 const followerLabels = { one: 'подписчик', few: 'подписчика', many: 'подписчиков', other: 'подписчика' }
 const pluralRules = new Intl.PluralRules('ru')
 
-export function ProfilePage({ profile, state, referenceTime, photos, onAddCatch, onSignOut }: ProfilePageProps) {
+export function ProfilePage({ profile, state, referenceTime, photos, onAddCatch, onSignOut, signingOut }: ProfilePageProps) {
   const [likedPosts, setLikedPosts] = useState<string[]>([])
   const [failedCover, setFailedCover] = useState<string>()
   const posts = state.status === 'ready' ? state.posts : []
@@ -38,7 +39,7 @@ export function ProfilePage({ profile, state, referenceTime, photos, onAddCatch,
         <div className="px-4 pb-6 sm:px-6">
           <div className="flex flex-wrap items-start justify-between gap-x-6 gap-y-4">
             <div className="-mt-10 rounded-pill border-8 border-surface bg-surface">
-              <Avatar initials={profile.initials} size="lg" />
+              <Avatar initials={profile.initials} src={profile.avatarUrl} size="lg" />
             </div>
             <div className="flex flex-wrap gap-3 pt-4 max-md:w-full max-md:pt-0">
               <Button size="md" onClick={onAddCatch}>
@@ -47,8 +48,8 @@ export function ProfilePage({ profile, state, referenceTime, photos, onAddCatch,
               <Button variant="dark" size="md" aria-disabled="true" title="Редактирование профиля пока недоступно">
                 <img className="size-5" src={editIcon} alt="" />Редактировать профиль
               </Button>
-              <Button variant="danger" size="md" onClick={onSignOut}>
-                <img className="size-5 brightness-0 invert" src={logoutIcon} alt="" />Выйти из аккаунта
+              <Button variant="danger" size="md" disabled={signingOut} onClick={onSignOut}>
+                <img className="size-5 brightness-0 invert" src={logoutIcon} alt="" />{signingOut ? 'Выходим…' : 'Выйти из аккаунта'}
               </Button>
             </div>
           </div>
