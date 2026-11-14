@@ -34,7 +34,7 @@ export function createMap(api: LeafletApi, container: HTMLElement, center: LngLa
     minZoom,
     maxZoom,
     zoomControl: false,
-    attributionControl: true,
+    attributionControl: false,
     preferCanvas: true,
   })
   api.tileLayer(tileUrl, { maxZoom, attribution: tileAttribution }).addTo(map)
