@@ -60,7 +60,7 @@ export default function App() {
     {authOpen && <AuthPage client={auth.client} cities={cities} cityStatus={cityStatus} onRetryCities={retryCities} onBack={() => setAuthOpen(false)} onSignIn={async (credentials) => { await auth.login(credentials); setAuthOpen(false); setSection(authTarget) }} />}
     <div hidden={authOpen} className="h-full">
     <div className="flex h-svh flex-col overflow-clip px-2 py-5 max-sm:py-3 2xl:px-9 2xl:py-6">
-      <Header city={city} cities={cities} cityStatus={cityStatus} onCityChange={(id) => { setCityId(id); setSearchNavigation(null) }} onRetryCities={retryCities} user={displayUser} onSearchNavigate={openSearchResult} onProfileClick={() => changeSection('profile')} onAddCatch={openCatch} />
+      <Header city={city} cities={cities} cityStatus={cityStatus} onCityChange={(id) => { setCityId(id); setSearchNavigation(null) }} onRetryCities={retryCities} user={displayUser} onSearchNavigate={openSearchResult} onHomeClick={() => changeSection('home')} onProfileClick={() => changeSection('profile')} onAddCatch={openCatch} />
       {auth.error && <div role="alert" className="mt-3 flex shrink-0 flex-wrap items-center gap-3 rounded-2xl bg-surface p-4 text-sm text-danger">{auth.error}{auth.status === 'error' && <button type="button" onClick={auth.retry} className="bg-transparent p-0 text-focus underline">Повторить</button>}</div>}
       <HomePage searchNavigation={searchNavigation} city={city} section={visibleSection} onSectionChange={changeSection} onAddCatch={openCatch} catchOrigin={catchOrigin} user={displayUser} signingOut={auth.signingOut} onSignOut={() => { void auth.logout().then((done) => { if (done) setSection('home') }) }} />
     </div>
