@@ -1,9 +1,9 @@
-import { useState, type ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import { Button } from '@/components/ui/button/Button'
 import { FeedFilters } from './FeedFilters'
 import { PostCard } from './PostCard'
 import { initialFeedFilters } from './feed-model'
-import type { FeedFiltersValue, FeedState } from './feed-model'
+import type { FeedFiltersValue, FeedPost, FeedState } from './feed-model'
 import type { SelectOption } from '@/components/ui/select/Select'
 
 type FeedProps = {
@@ -15,12 +15,18 @@ type FeedProps = {
   fish: readonly SelectOption[]
   more?: { hasMore: boolean; loading: boolean; error: boolean; onLoad: () => void }
   onRetry?: () => void
+  reactions: {
+    error: string
+    isLiked: (post: FeedPost) => boolean
+    isFollowing: (post: FeedPost) => boolean
+    toggleLike: (post: FeedPost) => void
+    toggleFollow: (post: FeedPost) => void
+  }
+  currentUserId?: string
   resources?: ReactNode
 }
 
-export function Feed({ state, referenceTime, filters, onFiltersChange, places, fish, more, onRetry, resources }: FeedProps) {
-  const [likedPosts, setLikedPosts] = useState<string[]>([])
-  const [followedAuthors, setFollowedAuthors] = useState<string[]>([])
+export function Feed({ state, referenceTime, filters, onFiltersChange, places, fish, more, onRetry, reactions, currentUserId, resources }: FeedProps) {
   const posts = state.status === 'ready' ? state.posts : []
   const resetFilters = () => onFiltersChange(initialFeedFilters)
   const hasFilters = filters.source !== 'all' || Boolean(filters.placeId) || Boolean(filters.fishId)
@@ -35,6 +41,7 @@ export function Feed({ state, referenceTime, filters, onFiltersChange, places, f
         onChange={onFiltersChange}
         onReset={resetFilters}
       />
+      {reactions.error && <p className="m-0 text-sm text-focus" role="alert">{reactions.error}</p>}
       {resources && <div className="shrink-0 py-2 2xl:hidden">{resources}</div>}
       <div className="flex shrink-0 flex-col gap-6" aria-busy={state.status === 'loading'}>
         {state.status === 'ready' ? (
@@ -43,10 +50,10 @@ export function Feed({ state, referenceTime, filters, onFiltersChange, places, f
               key={post.id}
               post={post}
               referenceTime={referenceTime}
-              liked={likedPosts.includes(post.id)}
-              following={followedAuthors.includes(post.author.id)}
-              onLike={() => setLikedPosts((current) => current.includes(post.id) ? current.filter((id) => id !== post.id) : [...current, post.id])}
-              onFollow={() => setFollowedAuthors((current) => current.includes(post.author.id) ? current.filter((id) => id !== post.author.id) : [...current, post.author.id])}
+              liked={reactions.isLiked(post)}
+              following={reactions.isFollowing(post)}
+              onLike={() => reactions.toggleLike(post)}
+              onFollow={post.author.id === currentUserId ? undefined : () => reactions.toggleFollow(post)}
             />
           )) : (
             <div className="rounded-4xl bg-surface p-6" role="status">

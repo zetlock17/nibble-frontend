@@ -23,7 +23,7 @@ export function TackleCatalog({ state, onRetry }: { state: TackleState; onRetry:
       <h1 id="tackle-title" className="m-0 shrink-0 text-3xl leading-tight font-extrabold lg:text-4xl">Снасти и удочки</h1>
       <FilterBar className="flex flex-col gap-3 pt-2">
         <div className="flex flex-wrap items-end gap-3">
-          <SearchInput className="h-11 w-full lg:w-60 lg:flex-1" label="Название или продавец" placeholder="Название или продавец" value={filters.query} onChange={(event) => setFilters({ ...filters, query: event.target.value })} />
+          <SearchInput className="h-11 w-full lg:w-60 lg:flex-1" label="Название снасти" placeholder="Название снасти" value={filters.query} onChange={(event) => setFilters({ ...filters, query: event.target.value })} />
           <fieldset className="m-0 flex min-w-48 flex-1 gap-2 border-0 p-0 lg:max-w-64">
             <legend className="sr-only">Цена в рублях</legend>
             {(['minPrice', 'maxPrice'] as const).map((key) => (
@@ -33,7 +33,7 @@ export function TackleCatalog({ state, onRetry }: { state: TackleState; onRetry:
               </label>
             ))}
           </fieldset>
-          <Select label="Порядок Фарпоста" icon={calendarIcon} options={sorts} value={filters.sort} onChange={(sort) => setFilters({ ...filters, sort })} />
+          <Select label="По умолчанию" icon={calendarIcon} options={sorts} value={filters.sort} onChange={(sort) => setFilters({ ...filters, sort })} />
         </div>
         {invalidRange && <p id="tackle-price-error" className="m-0 text-sm text-text" role="alert">Цена «от» должна быть не больше цены «до».</p>}
         {hasFilters && <Button className="self-start" variant="secondary" onClick={() => setFilters(initialTackleFilters)}>Сбросить фильтры</Button>}
@@ -47,7 +47,7 @@ export function TackleCatalog({ state, onRetry }: { state: TackleState; onRetry:
         ) : (
           <p className="m-0 rounded-3xl bg-surface p-6 text-sm leading-6 text-text-muted" role="status">{listings.length ? 'Объявлений не найдено. Измените запрос или сбросьте фильтры.' : 'Объявлений пока нет. Загляните позже.'}</p>
         ) : <div className="flex flex-col items-start gap-3 rounded-3xl bg-surface p-6 text-sm leading-6 text-text-muted" role={state.status === 'error' ? 'alert' : 'status'}>
-          <p className="m-0">{state.status === 'loading' ? 'Загружаем снасти с Фарпоста…' : 'Не удалось загрузить объявления с Фарпоста. Попробуйте ещё раз.'}</p>
+          <p className="m-0">{state.status === 'loading' ? 'Загружаем снасти…' : 'Не удалось загрузить объявления. Попробуйте ещё раз.'}</p>
           {state.status === 'error' && <Button variant="secondary" onClick={onRetry}>Повторить</Button>}
         </div>}
       </div>

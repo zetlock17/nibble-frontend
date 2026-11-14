@@ -26,7 +26,7 @@ export function SeasonalFish({ fish, onOpenGuide }: { fish: FishState; onOpenGui
       <FishLoadingState status={fish.status} onRetry={fish.retry} />
       {fish.status !== 'ready' ? null : selection.fish.length ? (
         <ul className="m-0 grid list-none grid-cols-3 gap-x-4 gap-y-3 p-0">
-          {selection.fish.map((item) => (
+          {selection.fish.slice(0, 3).map((item) => (
             <li key={item.id} className="flex min-w-0 flex-col gap-2">
               <div className="flex h-16 w-full items-center justify-center overflow-hidden rounded-xl bg-search">
                 {item.image && !failedImages.includes(item.image) ? (

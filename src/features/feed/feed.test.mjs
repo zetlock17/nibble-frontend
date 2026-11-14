@@ -8,6 +8,7 @@ import { feedQuery, parseFeedPage } from './feed-api.ts'
 
 // node --experimental-strip-types --test src/features/feed/feed.test.mjs
 const referenceTime = '2026-05-13T12:00:00+10:00'
+const noReactions = { error: '', isLiked: () => false, isFollowing: () => false, toggleLike() {}, toggleFollow() {} }
 const apiPost = (overrides = {}) => ({
   id: 7, kind: 'fishing_report', text: ' Поймал корюшку ', published_at: '2026-05-12T09:10:00Z', fishing_date: null,
   source: { id: 2, type: 'telegram', name: 'Канал', url: 'https://t.me/channel' }, author: null, spot: null, species: [], media: [],
@@ -103,7 +104,7 @@ test('карточки и лента рендерятся через Vite с н�
     assert.match(noPhotoHtml, /Камбала/)
     assert.doesNotMatch(noPhotoHtml, /aspect-video/)
 
-    const renderFeed = (state) => renderToStaticMarkup(createElement(Feed, { state, referenceTime, filters: initialFeedFilters, onFiltersChange() {}, places: [], fish: [] }))
+    const renderFeed = (state) => renderToStaticMarkup(createElement(Feed, { state, referenceTime, filters: initialFeedFilters, onFiltersChange() {}, places: [], fish: [], reactions: noReactions }))
     const feedHtml = renderFeed(feedMock)
     assert.equal((feedHtml.match(/<article /g) ?? []).length, 4)
     assert.match(feedHtml, /aria-label="Фильтры ленты"/)
@@ -111,7 +112,7 @@ test('карточки и лента рендерятся через Vite с н�
     assert.match(renderFeed({ status: 'loading' }), /aria-busy="true"/)
     assert.match(renderFeed({ status: 'error' }), /Не удалось загрузить ленту/)
     assert.match(renderFeed({ status: 'ready', posts: [] }), /Публикаций пока нет/)
-    const renderProfile = (state) => renderToStaticMarkup(createElement(ProfilePage, { profile: profileMock, state, referenceTime, photos: profilePhotosMock }))
+    const renderProfile = (state) => renderToStaticMarkup(createElement(ProfilePage, { profile: profileMock, state, referenceTime, photos: profilePhotosMock, reactions: noReactions }))
     const profileHtml = renderProfile({ status: 'ready', posts: profilePostsMock })
     assert.equal((profileHtml.match(/<article /g) ?? []).length, 2)
     assert.match(profileHtml, /Анна Соколова/)

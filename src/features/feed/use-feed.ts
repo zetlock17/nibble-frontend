@@ -12,8 +12,8 @@ type Loaded = { key: string; attempt: number } & (
 )
 
 // Первая страница грузится при смене города или фильтров, следующие — по кнопке.
-export function useFeed(cityId: number, filters: FeedFiltersValue) {
-  const key = `${cityId}|${filters.source}|${filters.placeId}|${filters.fishId}`
+export function useFeed(cityId: number, userId: number, filters: FeedFiltersValue) {
+  const key = `${cityId}|${userId}|${filters.source}|${filters.placeId}|${filters.fishId}`
   const [attempt, setAttempt] = useState(0)
   const [result, setResult] = useState<Loaded | null>(null)
   const [moreCursor, setMoreCursor] = useState<string | null>(null)
@@ -25,7 +25,7 @@ export function useFeed(cityId: number, filters: FeedFiltersValue) {
   useEffect(() => {
     const controller = new AbortController()
     const signal = AbortSignal.any([controller.signal, timeout()])
-    loadFeed(cityId, filters, null, apiBase, signal).then((page) => {
+    loadFeed(cityId, filters, null, signal).then((page) => {
       if (!controller.signal.aborted) setResult({ key, attempt, posts: page.posts, nextCursor: page.nextCursor, moreError: false })
     }).catch(() => {
       if (!controller.signal.aborted) setResult({ key, attempt, error: true })
@@ -39,7 +39,7 @@ export function useFeed(cityId: number, filters: FeedFiltersValue) {
     if (!loadingMore || !cursor) return
     const controller = new AbortController()
     const signal = AbortSignal.any([controller.signal, timeout()])
-    loadFeed(cityId, filters, cursor, apiBase, signal).then((page) => {
+    loadFeed(cityId, filters, cursor, signal).then((page) => {
       if (controller.signal.aborted) return
       setResult((value) => {
         if (!value || value.key !== key || 'error' in value) return value
