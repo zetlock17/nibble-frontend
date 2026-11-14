@@ -50,5 +50,5 @@ export function ProfileSection({ user, signingOut, onAddCatch, onSignOut }: { us
   const state: FeedState = !current ? { status: 'loading' } : 'error' in current ? { status: 'error' } : { status: 'ready', posts: current.posts }
   const photos = state.status === 'ready' ? state.posts.flatMap((post) => post.image ? [{ id: post.id, src: post.image.src, alt: post.image.alt }] : []) : []
 
-  return <ProfilePage profile={profile} state={state} referenceTime={referenceTime} photos={photos} reactions={reactions} signingOut={signingOut} onRetry={() => { setResult(null); setAttempt((value) => value + 1) }} onAddCatch={onAddCatch} onSignOut={onSignOut} />
+  return <ProfilePage profile={profile} state={state} referenceTime={referenceTime} photos={photos} reactions={reactions} signingOut={signingOut} currentUserId={String(userId)} onRetry={() => { setResult(null); setAttempt((value) => value + 1) }} onAddCatch={onAddCatch} onSignOut={onSignOut} />
 }
